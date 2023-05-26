@@ -1,0 +1,6 @@
+[submodule "benchmark"]
+	path = benchmark
+	url = https://github.com/melioristic/benchmark
+[submodule "dm_zoo"]
+	path = dm_zoo
+	url = https://github.com/melioristic/dm_zoo
