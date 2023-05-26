@@ -449,3 +449,11 @@ class Conditional_Dataset(Dataset):
         time = self.time[indices + self.max_abs_c_t]
 
         return input, target, time
+
+
+# to be used in dataloader for ensemble evaluation:
+def custom_collate(batch, num_copies):
+    inputs = torch.stack([sample[0] for sample in batch])
+    targets = torch.stack([sample[1] for sample in batch])
+    dates = torch.stack([sample[2] for sample in batch])
+    return [inputs.repeat(repeats=(num_copies,1,1,1)), targets.repeat(repeats=(num_copies,1,1,1)), dates.repeat(repeats=(num_copies,))]
