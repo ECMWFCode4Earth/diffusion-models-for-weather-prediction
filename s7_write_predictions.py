@@ -1,6 +1,6 @@
 from dm_zoo.dff.PixelDiffusion import PixelDiffusionConditional
 from pathlib import Path
-from WD.datasets import Conditional_Dataset
+from WD.datasets import Conditional_Dataset, custom_collate
 from WD.utils import create_dir
 from WD.io import load_config, create_xr_output_variables
 
@@ -40,9 +40,10 @@ restored_model = PixelDiffusionConditional.load_from_checkpoint(
 )  # to cuda makes it so that the GPU gets used for constructing the images!#
 
 
-B = 256
+B = 128
+num_copies = 2
 
-dl = DataLoader(ds, batch_size=B, shuffle=False)
+dl = DataLoader(ds, batch_size=B, shuffle=False, collate_fn=lambda x: custom_collate(x, num_copies=num_copies))
 
 trainer = pl.Trainer()
 out = trainer.predict(restored_model, dl)
