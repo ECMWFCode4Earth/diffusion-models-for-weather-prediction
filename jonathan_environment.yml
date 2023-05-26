@@ -1,0 +1,25 @@
+name: TORCH311
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - cudatoolkit
+  - cudnn
+  - pytorch
+  - torchaudio
+  - pytorch-cuda=11.7
+  - torchvision
+  - xarray
+  - matplotlib
+  - numpy
+  - ipykernel
+  - pytorch-lightning
+  - python-wget
+  - kornia
+  - einops
+  - netcdf4
+  - dask
+  - tensorboard
+  - cartopy
+  - munch
+
