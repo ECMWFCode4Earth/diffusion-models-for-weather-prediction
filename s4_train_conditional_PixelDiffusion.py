@@ -1,13 +1,15 @@
 import argparse
 
-import pytorch_lightning as pl
-from pytorch_lightning import loggers as pl_loggers
+import lightning as L
+from lightning.pytorch import loggers as pl_loggers
+
 from dm_zoo.dff.EMA import EMA
 from dm_zoo.dff.PixelDiffusion import PixelDiffusionConditional
 from WD.datasets import Conditional_Dataset
 import torch
 from WD.utils import check_devices, create_dir, generate_uid
 from WD.io import write_config, load_config
+from lightning.pytorch.callbacks import LearningRateMonitor
 
 parser = argparse.ArgumentParser(
     prog="WeatherDiffCondVanilla",
@@ -73,17 +75,18 @@ pl_hparam = {
     "accelerator": "cuda",
     "devices": -1,
 }
+lr_monitor = LearningRateMonitor(logging_interval="step")
 
 pl_args = {}
 for key, val in pl_hparam.items():
     if key == "ema_decay":
-        pl_args["callbacks"] = [EMA(val)]
+        pl_args["callbacks"] = [EMA(val), lr_monitor]
     else:
         pl_args[key] = val
 
 print(pl_args)
 
-trainer = pl.Trainer(
+trainer = L.Trainer(
     logger=tb_logger,
     **pl_args,
 )
