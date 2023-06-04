@@ -5,13 +5,11 @@ from typing import Union, Tuple, Dict, List
 import torch
 from torch.utils.data import Dataset
 from WD.utils import (
-    transform_precipitation,
     inverse_transform_precipitation,
     generate_uid,
 )
 
 from WD.io import write_config, load_config
-import yaml  # Write Config
 
 
 def write_conditional_datasets(config_path: str) -> None:
@@ -30,7 +28,7 @@ def write_conditional_datasets(config_path: str) -> None:
         delta_t (int, optional): Interval between consecutive timesteps in hours. Defaults to 6.
         out_dir (Union[None, str], optional): Directory to save the datasets in, if None use the same as the input directory. Defaults to None.
         out_filename (Union[None, str], optional): Name to save the dataset as, if not provided use a default name. Defaults to None.
-    """
+    """  # noqa: E501
 
     # root_dir: str,
     # train_limits: Tuple[datetime, datetime],
@@ -81,7 +79,11 @@ def write_conditional_datasets(config_path: str) -> None:
     print("Open files.")
     # output files:
     for foldername, var_config in output_variables.items():
-        path = os.path.join(root_dir, foldername, "*_{}.nc".format(spatial_resolution))
+        path = os.path.join(
+            root_dir,
+            foldername,
+            "*_{}.nc".format(spatial_resolution),
+        )
         ds = xr.open_mfdataset(path)
 
         assert len(ds.keys()) == 1
@@ -98,10 +100,16 @@ def write_conditional_datasets(config_path: str) -> None:
             grouped = ds.groupby("level")
             group_indices = grouped.groups
             datasets = []
-            for group_name, group_index in group_indices.items():
+            for (
+                group_name,
+                group_index,
+            ) in group_indices.items():
                 group_data = ds.isel(level=group_index)
                 renamed_vars = {}
-                for var_name, var_data in group_data.data_vars.items():
+                for (
+                    var_name,
+                    var_data,
+                ) in group_data.data_vars.items():
                     new_var_name = f"{var_name}_{group_name}"
                     renamed_vars[new_var_name] = var_data
                 group_ds = xr.Dataset(renamed_vars).drop_vars("level")
@@ -114,8 +122,15 @@ def write_conditional_datasets(config_path: str) -> None:
     output_dataset = xr.merge(output_datasets)
 
     # conditioning files:
-    for foldername, var_config in conditioning_variables.items():
-        path = os.path.join(root_dir, foldername, "*_{}.nc".format(spatial_resolution))
+    for (
+        foldername,
+        var_config,
+    ) in conditioning_variables.items():
+        path = os.path.join(
+            root_dir,
+            foldername,
+            "*_{}.nc".format(spatial_resolution),
+        )
         print(foldername, path)
         ds = xr.open_mfdataset(path)
 
@@ -132,10 +147,16 @@ def write_conditional_datasets(config_path: str) -> None:
             grouped = ds.groupby("level")
             group_indices = grouped.groups
             datasets = []
-            for group_name, group_index in group_indices.items():
+            for (
+                group_name,
+                group_index,
+            ) in group_indices.items():
                 group_data = ds.isel(level=group_index)
                 renamed_vars = {}
-                for var_name, var_data in group_data.data_vars.items():
+                for (
+                    var_name,
+                    var_data,
+                ) in group_data.data_vars.items():
                     new_var_name = f"{var_name}_{group_name}"
                     renamed_vars[new_var_name] = var_data
                 group_ds = xr.Dataset(renamed_vars).drop_vars("level")
@@ -147,7 +168,9 @@ def write_conditional_datasets(config_path: str) -> None:
     # append constant fields:
     ds_constants = xr.open_dataset(
         os.path.join(
-            root_dir, "constants", "constants_{}.nc".format(spatial_resolution)
+            root_dir,
+            "constants",
+            "constants_{}.nc".format(spatial_resolution),
         )
     )  # "/data/compoundx/WeatherBench/constants/constants_5.625deg.nc"
 
@@ -161,17 +184,23 @@ def write_conditional_datasets(config_path: str) -> None:
             conditioning_datasets.append(ds)
         conditioning_dataset = xr.merge(conditioning_datasets)
 
-    print("Number of conditioning variables:", len(list(conditioning_dataset.keys())))
+    print(
+        "Number of conditioning variables:",
+        len(list(conditioning_dataset.keys())),
+    )
 
     # pre-processing:
 
     # filter to temporal resolution delta_t
-    output_dataset = output_dataset.resample(time="{}H".format(delta_t)).nearest()
+    output_dataset = output_dataset.resample(
+        time="{}H".format(delta_t)
+    ).nearest()
     conditioning_dataset = conditioning_dataset.resample(
         time="{}H".format(delta_t)
     ).nearest()
 
-    # calculate training set maxima and minima - will need these to rescale the data to [0,1] range.
+    # calculate training set maxima and minima - will need these to
+    # rescale the data to [0,1] range.
     print("Compute train set minima and maxima.")
 
     # use these to rescale the datasets.
@@ -204,18 +233,26 @@ def write_conditional_datasets(config_path: str) -> None:
         conditioning_timesteps=conditioning_timesteps,
     )
 
-    assert bool(
-        train_targets.to_array().notnull().all().any()
-    ), "train_targets data set contains missing values, possibly because of the precipitation computation."
-    assert bool(
-        train_inputs.to_array().notnull().all().any()
-    ), "train_inputs data set contains missing values, possibly because of the precipitation computation."
-    assert bool(
-        test_targets.to_array().notnull().all().any()
-    ), "test_targets data set contains missing values, possibly because of the precipitation computation."
-    assert bool(
-        test_inputs.to_array().notnull().all().any()
-    ), "test_inputs data set contains missing values, possibly because of the precipitation computation."
+    assert bool(train_targets.to_array().notnull().all().any()), (
+        "train_targets data set contains missing values,"
+        " possibly because of the precipitation"
+        " computation."
+    )
+    assert bool(train_inputs.to_array().notnull().all().any()), (
+        "train_inputs data set contains missing values,"
+        " possibly because of the precipitation"
+        " computation."
+    )
+    assert bool(test_targets.to_array().notnull().all().any()), (
+        "test_targets data set contains missing values,"
+        " possibly because of the precipitation"
+        " computation."
+    )
+    assert bool(test_inputs.to_array().notnull().all().any()), (
+        "test_inputs data set contains missing values,"
+        " possibly because of the precipitation"
+        " computation."
+    )
 
     if validation_limits is not None:
         validation_targets, _ = prepare_datasets(
@@ -228,12 +265,16 @@ def write_conditional_datasets(config_path: str) -> None:
             lead_time=lead_time,
             conditioning_timesteps=conditioning_timesteps,
         )
-        assert bool(
-            validation_targets.to_array().notnull().all().any()
-        ), "validation_targets data set contains missing values, possibly because of the precipitation computation."
-        assert bool(
-            validation_inputs.to_array().notnull().all().any()
-        ), "validation_inputs data set contains missing values, possibly because of the precipitation computation."
+        assert bool(validation_targets.to_array().notnull().all().any()), (
+            "validation_targets data set contains missing"
+            " values, possibly because of the precipitation"
+            " computation."
+        )
+        assert bool(validation_inputs.to_array().notnull().all().any()), (
+            "validation_inputs data set contains missing"
+            " values, possibly because of the precipitation"
+            " computation."
+        )
 
     # write the files:
     if out_filename is None:
@@ -242,9 +283,9 @@ def write_conditional_datasets(config_path: str) -> None:
     print("write output")
     torch.save(
         {
-            "inputs": torch.tensor(xr.Dataset.to_array(train_inputs).values).transpose(
-                1, 0
-            ),
+            "inputs": torch.tensor(
+                xr.Dataset.to_array(train_inputs).values
+            ).transpose(1, 0),
             "targets": torch.tensor(
                 xr.Dataset.to_array(train_targets).values
             ).transpose(1, 0),
@@ -253,12 +294,12 @@ def write_conditional_datasets(config_path: str) -> None:
     )
     torch.save(
         {
-            "inputs": torch.tensor(xr.Dataset.to_array(test_inputs).values).transpose(
-                1, 0
-            ),
-            "targets": torch.tensor(xr.Dataset.to_array(test_targets).values).transpose(
-                1, 0
-            ),
+            "inputs": torch.tensor(
+                xr.Dataset.to_array(test_inputs).values
+            ).transpose(1, 0),
+            "targets": torch.tensor(
+                xr.Dataset.to_array(test_targets).values
+            ).transpose(1, 0),
         },
         os.path.join(out_dir, "{}_test.pt".format(out_filename)),
     )
@@ -280,7 +321,9 @@ def write_conditional_datasets(config_path: str) -> None:
 
 
 def prepare_datasets(
-    ds: xr.DataArray, lead_time: int, conditioning_timesteps: List[int]
+    ds: xr.DataArray,
+    lead_time: int,
+    conditioning_timesteps: List[int],
 ) -> Tuple[xr.Dataset, xr.Dataset]:
     """Given a dataset, a lead time and conditioning timesteps, which we want to use for conditioning the prediction,
     return the one dataset that contains all valid target data and
@@ -293,10 +336,15 @@ def prepare_datasets(
 
     Returns:
         Tuple[xr.Dataset, xr.Dataset]: Target and Conditioning datasets.
-    """
+    """  # noqa: E501
 
     ds_target = ds.isel(
-        {"time": slice(-(min(conditioning_timesteps)) + lead_time, None)}
+        {
+            "time": slice(
+                -(min(conditioning_timesteps)) + lead_time,
+                None,
+            )
+        }
     )
     ds_target["time"] = ds.isel(
         {"time": slice(-(min(conditioning_timesteps)), -lead_time)}
@@ -304,18 +352,32 @@ def prepare_datasets(
 
     dsts_condition = []
 
-    conditioning_vars_constant = [k for k in ds.keys() if "time" not in ds[k].coords]
-    conditioning_vars_nonconstant = [k for k in ds.keys() if "time" in ds[k].coords]
+    conditioning_vars_constant = [
+        k for k in ds.keys() if "time" not in ds[k].coords
+    ]
+    conditioning_vars_nonconstant = [
+        k for k in ds.keys() if "time" in ds[k].coords
+    ]
 
     ds_conditional_nconst = ds[conditioning_vars_nonconstant]
     ds_conditional_const = ds[conditioning_vars_constant]
 
     for t_c in conditioning_timesteps:
         ds_c = ds_conditional_nconst.isel(
-            {"time": slice(t_c - (min(conditioning_timesteps)), -lead_time + t_c)}
+            {
+                "time": slice(
+                    t_c - (min(conditioning_timesteps)),
+                    -lead_time + t_c,
+                )
+            }
         )
         ds_c["time"] = ds_conditional_nconst.isel(
-            {"time": slice(-(min(conditioning_timesteps)), -lead_time)}
+            {
+                "time": slice(
+                    -(min(conditioning_timesteps)),
+                    -lead_time,
+                )
+            }
         )["time"]
         keys = ds_c.keys()
         values = ["{}_{}".format(k, t_c) for k in keys]
@@ -325,9 +387,14 @@ def prepare_datasets(
 
     # add time dimension to constant fields:
     ds_conditional_const = ds_conditional_const.expand_dims(
-        time=ds.isel({"time": slice(-(min(conditioning_timesteps)), -lead_time)})[
-            "time"
-        ]
+        time=ds.isel(
+            {
+                "time": slice(
+                    -(min(conditioning_timesteps)),
+                    -lead_time,
+                )
+            }
+        )["time"]
     )
 
     ds_condition = xr.merge(dsts_condition)
@@ -359,14 +426,18 @@ def write_datasets(
         delta_t (int, optional): Interval between consecutive timesteps in hours. Defaults to 6.
         out_dir (Union[None, str], optional): Directory to save the datasets in, if None use the same as the input directory. Defaults to None.
         out_filename (Union[None, str], optional): Name to save the dataset as, if not provided use a default name. Defaults to None.
-    """
+    """  # noqa: E501
 
     # load all files:
     output_datasets = []
 
     # output files:
     for foldername, varname in output_variables.items():
-        path = os.path.join(root_dir, foldername, "*_{}.nc".format(spatial_resolution))
+        path = os.path.join(
+            root_dir,
+            foldername,
+            "*_{}.nc".format(spatial_resolution),
+        )
         ds = xr.open_mfdataset(path)
         if varname == "tp":
             ds = ds.rolling(time=6).sum()  # take 6 hour average
@@ -377,9 +448,12 @@ def write_datasets(
     # pre-processing:
 
     # filter to temporal resolution delta_t
-    output_dataset = output_dataset.resample(time="{}H".format(delta_t)).nearest()
+    output_dataset = output_dataset.resample(
+        time="{}H".format(delta_t)
+    ).nearest()
 
-    # calculate training set maxima and minima - will need these to rescale the data to [0,1] range.
+    # calculate training set maxima and minima -
+    # will need these to rescale the data to [0,1] range.
     print("Compute train set minima and maxima.")
     train_output_set_max = (
         output_dataset.sel({"time": slice(*train_limits)}).max().compute()
@@ -398,18 +472,32 @@ def write_datasets(
     train_targets = output_dataset.sel({"time": slice(*train_limits)})
     assert bool(
         train_targets.to_array().notnull().all().any()
-    ), "Training data set contains missing values, possibly because of the precipitation computation."  # assert that there are no missing values in the training set:
+    ), (  # assert that there are no missing values in the training set:
+        "Training data set contains missing values,"
+        " possibly because of the precipitation"
+        " computation."
+    )
 
     test_targets = output_dataset.sel({"time": slice(*test_limits)})
     assert bool(
         test_targets.to_array().notnull().all().any()
-    ), "Training data set contains missing values, possibly because of the precipitation computation."  # assert that there are no missing values in the test set:
+    ), (  # assert that there are no missing values in the test set:
+        "Training data set contains missing values,"
+        " possibly because of the precipitation"
+        " computation."
+    )
 
     if validation_limits is not None:
-        validation_targets = output_dataset.sel({"time": slice(*validation_limits)})
+        validation_targets = output_dataset.sel(
+            {"time": slice(*validation_limits)}
+        )
         assert bool(
             validation_targets.to_array().notnull().all().any()
-        ), "Validation data set contains missing values, possibly because of the precipitation computation."  # assert that there are no missing values in the val set.
+        ), (  # assert that there are no missing values in the val set.
+            "Validation data set contains missing values,"
+            " possibly because of the precipitation"
+            " computation."
+        )
 
     # write the files:
     if out_filename is None:
@@ -417,7 +505,9 @@ def write_datasets(
 
     print("write output")
     torch.save(
-        torch.tensor(xr.Dataset.to_array(train_targets).values).transpose(1, 0),
+        torch.tensor(xr.Dataset.to_array(train_targets).values).transpose(
+            1, 0
+        ),
         os.path.join(out_dir, "{}_train.pt".format(out_filename)),
     )
     torch.save(
@@ -427,15 +517,16 @@ def write_datasets(
     # if we want a validation set, create one:
     if validation_limits is not None:
         torch.save(
-            torch.tensor(xr.Dataset.to_array(validation_targets).values).transpose(
-                1, 0
-            ),
+            torch.tensor(
+                xr.Dataset.to_array(validation_targets).values
+            ).transpose(1, 0),
             os.path.join(out_dir, "{}_val.pt".format(out_filename)),
         )
 
 
 class Conditional_Dataset(Dataset):
-    """Dataset when using past steps as conditioning information and predicting into the future."""
+    """Dataset when using past steps as conditioning information
+    and predicting into the future."""
 
     def __init__(self, path):
         self.path = path

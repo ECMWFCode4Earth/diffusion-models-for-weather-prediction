@@ -4,12 +4,17 @@ import lightning as L
 from lightning.pytorch import loggers as pl_loggers
 
 from dm_zoo.dff.EMA import EMA
-from dm_zoo.dff.PixelDiffusion import PixelDiffusionConditional
+from dm_zoo.dff.PixelDiffusion import (
+    PixelDiffusionConditional,
+)
 from WD.datasets import Conditional_Dataset
 import torch
 from WD.utils import check_devices, create_dir, generate_uid
 from WD.io import write_config, load_config
 from lightning.pytorch.callbacks import LearningRateMonitor
+from lightning.pytorch.callbacks.early_stopping import (
+    EarlyStopping,
+)
 
 parser = argparse.ArgumentParser(
     prog="WeatherDiffCondVanilla",
@@ -43,9 +48,10 @@ ds_config = load_config(ds_config_path)
 
 
 train_ds_path = ds_config.file_structure.dir_model_input + f"{ds_id}_train.pt"
-
 train_ds = Conditional_Dataset(train_ds_path, ds_config_path)
 
+val_ds_path = ds_config.file_structure.dir_model_input + f"{ds_id}_val.pt"
+val_ds = Conditional_Dataset(val_ds_path, ds_config_path)
 
 # pytorch lightening hyperparams
 
@@ -53,6 +59,7 @@ train_ds = Conditional_Dataset(train_ds_path, ds_config_path)
 
 model = PixelDiffusionConditional(
     train_dataset=train_ds,
+    valid_dataset=val_ds,
     generated_channels=ds_config.n_generated_channels,
     condition_channels=ds_config.n_condition_channels,
     lr=1e-4,
@@ -69,22 +76,34 @@ tb_logger = pl_loggers.TensorBoardLogger(save_dir=model_dir)
 
 
 pl_hparam = {
-    "max_steps": 2e5,
+    "max_steps": 2e6,
     "ema_decay": 0.9999,
-    "limit_val_batches": 0,
+    "limit_val_batches": 0.5,
     "accelerator": "cuda",
     "devices": -1,
 }
-lr_monitor = LearningRateMonitor(logging_interval="step")
 
+assert (
+    pl_hparam["limit_val_batches"] > 0
+)  # So that validation step is carried out
+
+lr_monitor = LearningRateMonitor(logging_interval="step")
+early_stopping = EarlyStopping(
+    monitor="val_loss",
+    mode="min",
+    patience=5,
+    min_delta=1e-3,
+)
 pl_args = {}
 for key, val in pl_hparam.items():
     if key == "ema_decay":
-        pl_args["callbacks"] = [EMA(val), lr_monitor]
+        pl_args["callbacks"] = [
+            EMA(val),
+            lr_monitor,
+            early_stopping,
+        ]
     else:
         pl_args[key] = val
-
-print(pl_args)
 
 trainer = L.Trainer(
     logger=tb_logger,
@@ -101,5 +120,4 @@ model_config["file_structure"] = {
 }
 
 write_config(model_config)
-
 trainer.fit(model)

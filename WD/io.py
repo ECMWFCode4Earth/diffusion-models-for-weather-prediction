@@ -7,7 +7,10 @@ import pandas as pd
 import torch
 from datetime import datetime, timedelta
 
-from WD.utils import get_git_revision_hash, inverse_transform_precipitation
+from WD.utils import (
+    get_git_revision_hash,
+    inverse_transform_precipitation,
+)
 import os
 import yaml
 from munch import Munch
@@ -25,7 +28,10 @@ def create_xr(data: np.array, var: List, data_description: str):
     time_series = [start_dt + timedelta(days=i) for i in range(data.shape[0])]
     ds = xr.Dataset(
         data_vars={
-            var[i]: (["time", "lat", "lon"], data[:, i, :, :])
+            var[i]: (
+                ["time", "lat", "lon"],
+                data[:, i, :, :],
+            )
             for i in range(data.shape[1])
         },
         coords=dict(
@@ -91,19 +97,26 @@ def n_generated_channels(config):
             n_level += 1
         else:
             n_level = (
-                n_level + len(v["level"]) if v["level"] is not None else n_level + 1
+                n_level + len(v["level"])
+                if v["level"] is not None
+                else n_level + 1
             )
     return n_level
 
 
 def n_condition_channels(config):
     n_level = 0
-    for k, v in config.data_specs.conditioning_vars.toDict().items():
+    for (
+        k,
+        v,
+    ) in config.data_specs.conditioning_vars.toDict().items():
         if v is None:
             n_level += 1
         else:
             n_level = (
-                n_level + len(v["level"]) if v["level"] is not None else n_level + 1
+                n_level + len(v["level"])
+                if v["level"] is not None
+                else n_level + 1
             )
     n_level = n_level * len(config.data_specs.conditioning_time_step)
     n_level = (
@@ -114,7 +127,9 @@ def n_condition_channels(config):
     return n_level
 
 
-def undo_scaling(dataset: xr.Dataset, dataset_min_max: xr.Dataset) -> xr.Dataset:
+def undo_scaling(
+    dataset: xr.Dataset, dataset_min_max: xr.Dataset
+) -> xr.Dataset:
     res = xr.Dataset()
     for varname in dataset.var():
         dmin = dataset_min_max[varname + "_min"]
@@ -147,7 +162,7 @@ def create_xr_output_variables(
         dates (torch.tensor): A torch tensor of the init_times from data. Should be produced automatically by dataset or dataloader.
         config_file_path (str): Path to the used configuration file
         min_max_file_path (str): Path to the netcdf4 file in which training set maxima and minima are stored.
-    """
+    """  # noqa: E501
     # loading config information:
     config = load_config(config_file_path)
 
@@ -159,34 +174,49 @@ def create_xr_output_variables(
     ds = xr.Dataset()
 
     assert os.path.isfile(
-        os.path.join(root_dir, "constants/constants_{}.nc".format(spatial_resolution))
-    ), "The file {} is required to extract the coordinates, but doesn't exist.".format(
-        os.path.join(root_dir, "constants/constants_{}.nc".format(spatial_resolution))
+        os.path.join(
+            root_dir,
+            "constants/constants_{}.nc".format(spatial_resolution),
+        )
+    ), (
+        "The file {} is required to extract the coordinates, but doesn't"
+        " exist.".format(
+            os.path.join(
+                root_dir,
+                "constants/constants_{}.nc".format(spatial_resolution),
+            )
+        )
     )
     coords = xr.open_dataset(
-        os.path.join(root_dir, "constants/constants_{}.nc".format(spatial_resolution))
+        os.path.join(
+            root_dir,
+            "constants/constants_{}.nc".format(spatial_resolution),
+        )
     ).coords
     ds.coords.update(coords)
-    ds = ds.expand_dims({"lead_time": 1}).assign_coords({"lead_time": [lead_time]})
+    ds = ds.expand_dims({"lead_time": 1}).assign_coords(
+        {"lead_time": [lead_time]}
+    )
     ds = ds.expand_dims({"init_time": len(dates)}).assign_coords(
         {"init_time": pd.to_datetime(dates)}
     )  # maybe need .numpy() here
 
     # get list of variables:
-    assert os.path.isfile(
-        min_max_file_path
-    ), "The file {} is required to extract minima and maxima, but doesn't exist.".format(
-        min_max_file_path
+    assert os.path.isfile(min_max_file_path), (
+        "The file {} is required to extract minima and"
+        " maxima, but doesn't exist.".format(min_max_file_path)
     )
     ds_min_max = xr.open_dataset(min_max_file_path)
     # get list of variables, hopefully in the same order as the channels:
     var_names = [
-        name.rstrip("_max") for name in list(ds_min_max.var()) if "_max" in name
+        name.rstrip("_max")
+        for name in list(ds_min_max.var())
+        if "_max" in name
     ]
 
     for i in range(data.shape[1]):
         ds[var_names[i]] = xr.DataArray(
-            data[:, i : i + 1, ...],
+            data[:, i : i + 1, ...],  # noqa E203
             dims=("init_time", "lead_time", "lat", "lon"),
             coords={
                 "lat": ds.lat,
