@@ -127,8 +127,10 @@ dmypy.json
 # ML files
 
 lightning_logs
+lightning_logs/
 
-# Err files
+
+# log files
 *.err 
 *.out
 
