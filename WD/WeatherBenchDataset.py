@@ -5,7 +5,6 @@ import os
 import kornia.augmentation as KA
 import torch
 import xarray as xr
-import numpy as np
 
 
 class TestDataset(Dataset):
@@ -48,12 +47,18 @@ class TestDataset(Dataset):
 
 def single_torch_file_from_dataset(root_dir):
     z500 = xr.open_mfdataset(
-        os.path.join(root_dir, "geopotential_500/*.nc"), combine="by_coords"
+        os.path.join(root_dir, "geopotential_500/*.nc"),
+        combine="by_coords",
     ).z
     zmin = z500.min()
     zmax = z500.max()
-    normalized_z500 = torch.tensor(((z500 - zmin) / (zmax - zmin)).values)[:, None, ...]
-    torch.save(normalized_z500, os.path.join(root_dir, "complete_dataset.pt"))
+    normalized_z500 = torch.tensor(((z500 - zmin) / (zmax - zmin)).values)[
+        :, None, ...
+    ]
+    torch.save(
+        normalized_z500,
+        os.path.join(root_dir, "complete_dataset.pt"),
+    )
 
 
 class SingleDataset(Dataset):
