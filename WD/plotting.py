@@ -1,6 +1,4 @@
-import cartopy
 import cartopy.crs as ccrs
-import cartopy.mpl.geoaxes
 import matplotlib
 import matplotlib.pyplot as plt
 
@@ -12,7 +10,10 @@ from typing import Dict
 
 
 def plot_map(
-    ax: plt.Axes, data: xr.Dataset, plotting_config: Dict, title: str = ""
+    ax: plt.Axes,
+    data: xr.Dataset,
+    plotting_config: Dict,
+    title: str = "",
 ) -> None:
     """Plot an xarray dataset as a map. The dataset is assumed to have dimensions lat and lon and trivial other dimensions and only contain a single variable. The function works by modifying an existing Axes object.
 
@@ -21,7 +22,7 @@ def plot_map(
         data (xr.Dataset): Data to plot, should have non-trivial dimensions lat and lon  only
         plotting_config (Dict): Some configurations regarding plotting, infer details from code below.
         title (str, optional): Title for this specific panel of the plot. Defaults to "".
-    """
+    """  # noqa: E501
 
     p_data = data[list(data.keys())[0]]
 
@@ -45,7 +46,8 @@ def plot_map(
     if plotting_config["SHOW_COLORBAR"]:
         cbar = plt.colorbar(
             matplotlib.cm.ScalarMappable(
-                cmap=plotting_config["CMAP"], norm=plotting_config["NORM"]
+                cmap=plotting_config["CMAP"],
+                norm=plotting_config["NORM"],
             ),
             spacing="proportional",
             orientation=plotting_config["CBAR_ORIENTATION"],
@@ -57,12 +59,22 @@ def plot_map(
 
     ax.coastlines()
     if title != "":
-        ax.set_title(title, fontsize=plotting_config["TITLE_FONTSIZE"])
+        ax.set_title(
+            title,
+            fontsize=plotting_config["TITLE_FONTSIZE"],
+        )
 
 
 def add_label_to_axes(ax, label, fontsize=None):
     if fontsize is None:
-        ax.text(0.01, 0.99, label, ha="left", va="top", transform=ax.transAxes)
+        ax.text(
+            0.01,
+            0.99,
+            label,
+            ha="left",
+            va="top",
+            transform=ax.transAxes,
+        )
     else:
         ax.text(
             0.01,

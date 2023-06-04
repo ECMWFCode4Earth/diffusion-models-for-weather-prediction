@@ -22,7 +22,9 @@ def get_git_revision_hash() -> str:
         .strip()
     )
     grv_weather_diff = (
-        subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii").strip()
+        subprocess.check_output(["git", "rev-parse", "HEAD"])
+        .decode("ascii")
+        .strip()
     )
 
     return [grv_dm_zoo, grv_weather_diff]
@@ -41,18 +43,25 @@ def inverse_transformation_function(y, eps=0.001):
 
 
 def transform_precipitation(pr: xr.Dataset) -> xr.Dataset:
-    """Apply a transformation to the precipitation values to make training easier. For now, follow Rasp & Thuerey
+    """Apply a transformation to the precipitation values to make training easier.
+    For now, follow Rasp & Thuerey
 
     Args:
         pr (xr.Dataset): The precipitation array on the original scale
 
     Returns:
         xr.Dataset: A rescaled version of the precipitation array
-    """
-    return xr.apply_ufunc(transformation_function, pr["tp"], dask="parallelized")
+    """  # noqa: E501
+    return xr.apply_ufunc(
+        transformation_function,
+        pr["tp"],
+        dask="parallelized",
+    )
 
 
-def inverse_transform_precipitation(pr_transform: xr.Dataset) -> xr.Dataset:
+def inverse_transform_precipitation(
+    pr_transform: xr.Dataset,
+) -> xr.Dataset:
     """Undo the precipitation transformation.
 
     Args:
@@ -62,7 +71,9 @@ def inverse_transform_precipitation(pr_transform: xr.Dataset) -> xr.Dataset:
         xr.Dataset: The precipitation, rescaled to the original resolution
     """
     return xr.apply_ufunc(
-        inverse_transformation_function, pr_transform["tp"], dask="parallelized"
+        inverse_transformation_function,
+        pr_transform["tp"],
+        dask="parallelized",
     )
 
 
@@ -73,7 +84,9 @@ def create_dir(path):
 def n_generated_channels(config):
     n_level = 0
     for k, v in config.data_specs.output_vars.items():
-        n_level = n_level + len(v.levels) if v.levels is not None else n_level + 1
+        n_level = (
+            n_level + len(v.levels) if v.levels is not None else n_level + 1
+        )
 
     return n_level
 
@@ -81,7 +94,9 @@ def n_generated_channels(config):
 def n_condition_channels(config):
     n_level = 0
     for k, v in config.data_specs.conditioning_vars.items():
-        n_level = n_level + len(v.levels) if v.levels is not None else n_level + 1
+        n_level = (
+            n_level + len(v.levels) if v.levels is not None else n_level + 1
+        )
     n_level = n_level * len(config.data_specs.conditioning_time_step)
     n_level = (
         n_level + len(config.data_specs.constant_vars)

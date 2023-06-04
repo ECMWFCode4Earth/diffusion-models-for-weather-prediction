@@ -10,7 +10,7 @@ from WD.io import write_config, load_config
 
 from WD.utils import (
     transform_precipitation,
-    inverse_transform_precipitation,
+    # inverse_transform_precipitation,
     generate_uid,
 )
 from munch import Munch
@@ -24,7 +24,11 @@ def open_datasets(
     res_datasets = []
 
     for foldername, var_config in variables.items():
-        path = os.path.join(root_dir, foldername, "*_{}.nc".format(spatial_resolution))
+        path = os.path.join(
+            root_dir,
+            foldername,
+            "*_{}.nc".format(spatial_resolution),
+        )
         ds = xr.open_mfdataset(path)
 
         assert len(ds.keys()) == 1
@@ -42,9 +46,12 @@ def open_datasets(
             res_datasets.extend(datasets)
         else:
             if "level" in ds.dims:
-                assert (
-                    ds.level.size == 1
-                ), "The given dataset is defined at more than one pressure level, but no pressure levels were selected in the configuration file."
+                assert ds.level.size == 1, (
+                    "The given dataset is defined at more"
+                    " than one pressure level, but no"
+                    " pressure levels were selected in the"
+                    " configuration file."
+                )
             if "level" in ds.var():
                 ds = ds.drop_vars("level")
             res_datasets.append(ds)
@@ -68,7 +75,7 @@ def create_variables_from_pressure_levels(
     Returns:
         List[xr.Dataset]: A list of xarray datasets,
         each of which contains a single variable at a single pressure level.
-    """
+    """  # noqa: E501
 
     ds = ds.sel({"level": var_config["level"]})
     grouped = ds.groupby("level")
@@ -77,7 +84,10 @@ def create_variables_from_pressure_levels(
     for group_name, group_index in group_indices.items():
         group_data = ds.isel(level=group_index)
         renamed_vars = {}
-        for var_name, var_data in group_data.data_vars.items():
+        for (
+            var_name,
+            var_data,
+        ) in group_data.data_vars.items():
             new_var_name = f"{var_name}_{group_name}"
             renamed_vars[new_var_name] = var_data
         group_ds = xr.Dataset(renamed_vars).drop_vars("level")
@@ -87,7 +97,9 @@ def create_variables_from_pressure_levels(
 
 
 def open_constant_datasets(
-    root_dir: str, spatial_resolution: str, constant_vars: Union[List[str], None]
+    root_dir: str,
+    spatial_resolution: str,
+    constant_vars: Union[List[str], None],
 ) -> xr.Dataset:
     """Open the constant fields, i.e. variables that stay constant over the entire time domain.
 
@@ -98,11 +110,13 @@ def open_constant_datasets(
 
     Returns:
         xr.Dataset: A dataset containing all selected constant variables.
-    """
+    """  # noqa: E501
     constant_datasets = []
     ds_constants = xr.open_dataset(
         os.path.join(
-            root_dir, "constants", "constants_{}.nc".format(spatial_resolution)
+            root_dir,
+            "constants",
+            "constants_{}.nc".format(spatial_resolution),
         )
     )
 
@@ -137,7 +151,7 @@ def write_conditional_datasets(config_path: str) -> None:
         delta_t (int, optional): Interval between consecutive timesteps in hours. Defaults to 6.
         out_dir (Union[None, str], optional): Directory to save the datasets in, if None use the same as the input directory. Defaults to None.
         out_filename (Union[None, str], optional): Name to save the dataset as, if not provided use a default name. Defaults to None.
-    """
+    """  # noqa: E501
 
     print("Load config file.")
     config = load_config(config_path)
@@ -190,12 +204,23 @@ def write_conditional_datasets(config_path: str) -> None:
         constant_vars=constant_vars,
     )
 
-    print("Number of conditioning variables:", len(list(conditioning_dataset.keys())))
-    print("Number of constant variables:", len(list(constant_dataset.keys())))
-    print("Number of output variables:", len(list(output_dataset.keys())))
+    print(
+        "Number of conditioning variables:",
+        len(list(conditioning_dataset.keys())),
+    )
+    print(
+        "Number of constant variables:",
+        len(list(constant_dataset.keys())),
+    )
+    print(
+        "Number of output variables:",
+        len(list(output_dataset.keys())),
+    )
 
     # filter to temporal resolution delta_t
-    output_dataset = output_dataset.resample(time="{}H".format(delta_t)).nearest()
+    output_dataset = output_dataset.resample(
+        time="{}H".format(delta_t)
+    ).nearest()
     conditioning_dataset = conditioning_dataset.resample(
         time="{}H".format(delta_t)
     ).nearest()
@@ -207,42 +232,63 @@ def write_conditional_datasets(config_path: str) -> None:
         conditioning_train_max,
     ) = normalize_dataset(conditioning_dataset, train_limits=train_limits)
 
-    output_dataset, output_train_min, output_train_max = normalize_dataset(
-        output_dataset, train_limits=train_limits
-    )
+    (
+        output_dataset,
+        output_train_min,
+        output_train_max,
+    ) = normalize_dataset(output_dataset, train_limits=train_limits)
 
-    constant_dataset, constant_train_min, constant_train_max = normalize_dataset(
-        constant_dataset, train_limits=None
-    )
+    (
+        constant_dataset,
+        constant_train_min,
+        constant_train_max,
+    ) = normalize_dataset(constant_dataset, train_limits=None)
 
     # save min and max to separate file:
     xr.merge([output_train_min, output_train_max]).to_netcdf(
-        os.path.join(out_dir, "{}_output_min_max.nc".format(out_filename))
+        os.path.join(
+            out_dir,
+            "{}_output_min_max.nc".format(out_filename),
+        )
     )
     xr.merge([conditioning_train_min, conditioning_train_max]).to_netcdf(
-        os.path.join(out_dir, "{}_conditioning_min_max.nc".format(out_filename))
+        os.path.join(
+            out_dir,
+            "{}_conditioning_min_max.nc".format(out_filename),
+        )
     )
     xr.merge([constant_train_min, constant_train_max]).to_netcdf(
-        os.path.join(out_dir, "{}_constant_min_max.nc".format(out_filename))
+        os.path.join(
+            out_dir,
+            "{}_constant_min_max.nc".format(out_filename),
+        )
     )
 
     print("Slice into train, test and validation set and write to .pt files.")
     test_inputs = conditioning_dataset.sel({"time": slice(*test_limits)})
-    assert contains_no_nans(
-        test_inputs
-    ), "test_inputs data set contains missing values, possibly because of the precipitation computation."
+    assert contains_no_nans(test_inputs), (
+        "test_inputs data set contains missing values,"
+        " possibly because of the precipitation"
+        " computation."
+    )
     train_inputs = conditioning_dataset.sel({"time": slice(*train_limits)})
-    assert contains_no_nans(
-        train_inputs
-    ), "train_inputs data set contains missing values, possibly because of the precipitation computation."
+    assert contains_no_nans(train_inputs), (
+        "train_inputs data set contains missing values,"
+        " possibly because of the precipitation"
+        " computation."
+    )
     test_targets = output_dataset.sel({"time": slice(*test_limits)})
-    assert contains_no_nans(
-        test_targets
-    ), "test_targets data set contains missing values, possibly because of the precipitation computation."
+    assert contains_no_nans(test_targets), (
+        "test_targets data set contains missing values,"
+        " possibly because of the precipitation"
+        " computation."
+    )
     train_targets = output_dataset.sel({"time": slice(*train_limits)})
-    assert contains_no_nans(
-        train_targets
-    ), "train_targets data set contains missing values, possibly because of the precipitation computation."
+    assert contains_no_nans(train_targets), (
+        "train_targets data set contains missing values,"
+        " possibly because of the precipitation"
+        " computation."
+    )
     write_to_pytorch(
         "train",
         train_inputs,
@@ -260,14 +306,20 @@ def write_conditional_datasets(config_path: str) -> None:
         out_filename=out_filename,
     )
     if validation_limits is not None:
-        val_inputs = conditioning_dataset.sel({"time": slice(*validation_limits)})
-        assert contains_no_nans(
-            val_inputs
-        ), "val_inputs data set contains missing values, possibly because of the precipitation computation."
+        val_inputs = conditioning_dataset.sel(
+            {"time": slice(*validation_limits)}
+        )
+        assert contains_no_nans(val_inputs), (
+            "val_inputs data set contains missing values,"
+            " possibly because of the precipitation"
+            " computation."
+        )
         val_targets = output_dataset.sel({"time": slice(*validation_limits)})
-        assert contains_no_nans(
-            val_targets
-        ), "val_targets data set contains missing values, possibly because of the precipitation computation."
+        assert contains_no_nans(val_targets), (
+            "val_targets data set contains missing values,"
+            " possibly because of the precipitation"
+            " computation."
+        )
 
         write_to_pytorch(
             "val",
@@ -282,7 +334,8 @@ def write_conditional_datasets(config_path: str) -> None:
 
 
 def normalize_dataset(
-    dataset: xr.Dataset, train_limits: Union[Tuple[datetime, datetime], None]
+    dataset: xr.Dataset,
+    train_limits: Union[Tuple[datetime, datetime], None],
 ) -> xr.Dataset:
     """Normalize datasets, such that range in training set is [0,1].
 
@@ -293,13 +346,17 @@ def normalize_dataset(
 
     Returns:
         xr.Dataset: Rescaled dataset.
-    """
+    """  # noqa: E501
     if train_limits is not None:
         train_max = (
-            dataset.sel({"time": slice(*train_limits)}).max(keep_attrs=True).compute()
+            dataset.sel({"time": slice(*train_limits)})
+            .max(keep_attrs=True)
+            .compute()
         )
         train_min = (
-            dataset.sel({"time": slice(*train_limits)}).min(keep_attrs=True).compute()
+            dataset.sel({"time": slice(*train_limits)})
+            .min(keep_attrs=True)
+            .compute()
         )
     else:
         train_max = dataset.max(keep_attrs=True).compute()
@@ -327,30 +384,41 @@ def write_to_pytorch(
             {
                 "time": torch.tensor(inputs.time.values.astype(np.int64)),
                 "inputs": torch.tensor(
-                    xr.Dataset.to_array(inputs).values, dtype=torch.float
+                    xr.Dataset.to_array(inputs).values,
+                    dtype=torch.float,
                 ).transpose(1, 0),
                 "targets": torch.tensor(
-                    xr.Dataset.to_array(targets).values, dtype=torch.float
+                    xr.Dataset.to_array(targets).values,
+                    dtype=torch.float,
                 ).transpose(1, 0),
                 "constants": torch.tensor(
-                    xr.Dataset.to_array(constants).values, dtype=torch.float
+                    xr.Dataset.to_array(constants).values,
+                    dtype=torch.float,
                 ),
             },
-            os.path.join(out_dir, "{}_{}.pt".format(out_filename, ds_type)),
+            os.path.join(
+                out_dir,
+                "{}_{}.pt".format(out_filename, ds_type),
+            ),
         )
     else:
         torch.save(
             {
                 "time": torch.tensor(inputs.time.values.astype(np.int64)),
                 "inputs": torch.tensor(
-                    xr.Dataset.to_array(inputs).values, dtype=torch.float
+                    xr.Dataset.to_array(inputs).values,
+                    dtype=torch.float,
                 ).transpose(1, 0),
                 "targets": torch.tensor(
-                    xr.Dataset.to_array(targets).values, dtype=torch.float
+                    xr.Dataset.to_array(targets).values,
+                    dtype=torch.float,
                 ).transpose(1, 0),
                 "constants": torch.tensor([], dtype=torch.float),
             },
-            os.path.join(out_dir, "{}_{}.pt".format(out_filename, ds_type)),
+            os.path.join(
+                out_dir,
+                "{}_{}.pt".format(out_filename, ds_type),
+            ),
         )
 
 
@@ -367,7 +435,7 @@ def expand_time_dimension(ds: xr.Dataset) -> xr.Dataset:
 
     Returns:
         xr.Dataset: Dataset with time dimension for all variables.
-    """
+    """  # noqa: E501
     vars_constant = [k for k in ds.keys() if "time" not in ds[k].coords]
     vars_nonconstant = [k for k in ds.keys() if "time" in ds[k].coords]
 
@@ -382,7 +450,8 @@ def expand_time_dimension(ds: xr.Dataset) -> xr.Dataset:
 
 
 class Conditional_Dataset(Dataset):
-    """Dataset when using past steps as conditioning information and predicting into the future."""
+    """Dataset when using past steps as conditioning information
+    and predicting into the future."""
 
     def __init__(self, pt_file_path, config_file_path):
         self.path = pt_file_path
@@ -392,7 +461,8 @@ class Conditional_Dataset(Dataset):
         config = load_config(config_file_path)
         self.lead_time = config.data_specs.lead_time
         self.conditioning_timesteps = torch.tensor(
-            config.data_specs.conditioning_time_step, dtype=torch.int
+            config.data_specs.conditioning_time_step,
+            dtype=torch.int,
         )
         self.max_abs_c_t = max(abs(self.conditioning_timesteps))
 
@@ -403,7 +473,8 @@ class Conditional_Dataset(Dataset):
         self.targets = data["targets"]
         self.constants = data["constants"]
         self.indices = torch.arange(
-            len(self.inputs) - self.lead_time - self.max_abs_c_t, dtype=torch.int
+            len(self.inputs) - self.lead_time - self.max_abs_c_t,
+            dtype=torch.int,
         )
 
         if len(data["constants"]) == 0:
@@ -411,17 +482,21 @@ class Conditional_Dataset(Dataset):
                 1, 0, *self.targets.shape[2:]
             ).float()  # TODO remove for newer datasets
         else:
-            self.constants = data["constants"].float()  # TODO remove for newer datasets
+            self.constants = data[
+                "constants"
+            ].float()  # TODO remove for newer datasets
 
         self.indices = torch.arange(
-            len(self.inputs) - self.lead_time - self.max_abs_c_t, dtype=torch.int
+            len(self.inputs) - self.lead_time - self.max_abs_c_t,
+            dtype=torch.int,
         )
 
     def __len__(self):
         return len(self.inputs) - self.lead_time - self.max_abs_c_t
 
     def __getitem__(self, idx):
-        # this is not optimal - but the only way I could come up with to also be able to use slices here.
+        # this is not optimal - but the only way I could
+        # come up with to also be able to use slices here.
         indices = self.indices[idx]
         input = self.inputs[
             indices.view(-1, 1)
@@ -432,18 +507,24 @@ class Conditional_Dataset(Dataset):
             :,
         ]
         input = input.view(
-            input.shape[0], input.shape[1] * input.shape[2], *input.shape[3:]
+            input.shape[0],
+            input.shape[1] * input.shape[2],
+            *input.shape[3:],
         )
         input = torch.concatenate(
-            (input, self.constants.repeat(input.shape[0], 1, 1, 1)), dim=1
+            (
+                input,
+                self.constants.repeat(input.shape[0], 1, 1, 1),
+            ),
+            dim=1,
         ).squeeze(dim=0)
         target = (
             self.targets[indices + self.max_abs_c_t + self.lead_time].view(
                 -1, *self.targets.shape[1:]
             )
-        ).squeeze(
-            dim=0
-        )  # torch.squeeze is necessary because we want a trivial first dimension if it has only one element.
+        ).squeeze(dim=0)
+        # torch.squeeze is necessary because we want a
+        # trivial first dimension if it has only one element.
 
         # return the init_time of the forecast:
         time = self.time[indices + self.max_abs_c_t]

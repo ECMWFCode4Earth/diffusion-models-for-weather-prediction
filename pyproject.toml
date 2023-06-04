@@ -1,4 +1,6 @@
 [tool.black]
+experimental-string-processing = true
+line-length=79
 py36 = true
 include = '\.pyi?$'
 exclude = '''
