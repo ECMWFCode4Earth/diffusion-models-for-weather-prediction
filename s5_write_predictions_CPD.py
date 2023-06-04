@@ -1,16 +1,18 @@
-from dm_zoo.dff.PixelDiffusion import PixelDiffusionConditional
+from dm_zoo.dff.PixelDiffusion import (
+    PixelDiffusionConditional,
+)
 from pathlib import Path
 from WD.datasets import Conditional_Dataset
 from WD.utils import create_dir
 from WD.io import load_config, create_xr_output_variables
-
+from WD.io import write_config
 import pytorch_lightning as pl
 
 from torch.utils.data import DataLoader
 import torch
 
-ds_id = "2C730B"
-run_id = "F7BBAE"
+ds_id = "278771"
+run_id = "210C0E"
 
 model_config_path = "/data/compoundx/WeatherDiff/config_file/{}_{}.yml".format(
     ds_id, run_id
@@ -61,17 +63,25 @@ dates = ds[:][2]
 gen_xr = create_xr_output_variables(
     gen,
     dates=dates,
-    config_file_path="/data/compoundx/WeatherDiff/config_file/{}.yml".format(ds_id),
-    min_max_file_path="/data/compoundx/WeatherDiff/model_input/{}_output_min_max.nc".format(
+    config_file_path="/data/compoundx/WeatherDiff/config_file/{}.yml".format(
         ds_id
+    ),
+    min_max_file_path=(
+        "/data/compoundx/WeatherDiff/model_input/{}_output_min_max.nc".format(
+            ds_id
+        )
     ),
 )
 target_xr = create_xr_output_variables(
     targets,
     dates=dates,
-    config_file_path="/data/compoundx/WeatherDiff/config_file/{}.yml".format(ds_id),
-    min_max_file_path="/data/compoundx/WeatherDiff/model_input/{}_output_min_max.nc".format(
+    config_file_path="/data/compoundx/WeatherDiff/config_file/{}.yml".format(
         ds_id
+    ),
+    min_max_file_path=(
+        "/data/compoundx/WeatherDiff/model_input/{}_output_min_max.nc".format(
+            ds_id
+        )
     ),
 )
 
@@ -85,4 +95,5 @@ print(f"Target data written at: {target_dir}")
 
 model_config.file_structure.dir_model_output = str(model_output_dir)
 
-# write_config(model_config) - I think modifying the config here is not possible because it is write locked? maybe?
+write_config(model_config)
+# Write config is possible deletes and rewrites
