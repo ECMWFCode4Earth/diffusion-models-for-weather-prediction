@@ -14,5 +14,5 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate TORCH311
 
-srun python s3_train_conditional_PixelDiffusion.py  -did 278771 #575CEB 
+srun python s3_train_conditional_PixelDiffusion.py  -did 278771 #575CEB
 
