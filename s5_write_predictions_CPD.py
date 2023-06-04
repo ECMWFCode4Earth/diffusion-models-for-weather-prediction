@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 import torch
 
 ds_id = "278771"
-run_id = "F1F646"
+run_id = "210C0E"
 
 model_config_path = "/data/compoundx/WeatherDiff/config_file/{}_{}.yml".format(
     ds_id, run_id

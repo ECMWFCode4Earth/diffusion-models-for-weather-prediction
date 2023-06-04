@@ -1,7 +1,7 @@
 import argparse
 
-import lightning as L
-from lightning.pytorch import loggers as pl_loggers
+import pytorch_lightning as pl
+from pytorch_lightning import loggers as pl_loggers
 
 from dm_zoo.dff.EMA import EMA
 from dm_zoo.dff.PixelDiffusion import (
@@ -11,8 +11,8 @@ from WD.datasets import Conditional_Dataset
 import torch
 from WD.utils import check_devices, create_dir, generate_uid
 from WD.io import write_config, load_config
-from lightning.pytorch.callbacks import LearningRateMonitor
-from lightning.pytorch.callbacks.early_stopping import (
+from pytorch_lightning.callbacks import LearningRateMonitor
+from pytorch_lightning.callbacks.early_stopping import (
     EarlyStopping,
 )
 
@@ -78,7 +78,7 @@ tb_logger = pl_loggers.TensorBoardLogger(save_dir=model_dir)
 pl_hparam = {
     "max_steps": 2e6,
     "ema_decay": 0.9999,
-    "limit_val_batches": 0.5,
+    "limit_val_batches": 1.0,
     "accelerator": "cuda",
     "devices": -1,
 }
@@ -91,7 +91,7 @@ lr_monitor = LearningRateMonitor(logging_interval="step")
 early_stopping = EarlyStopping(
     monitor="val_loss",
     mode="min",
-    patience=5,
+    patience=20,
     min_delta=1e-3,
 )
 pl_args = {}
@@ -105,7 +105,7 @@ for key, val in pl_hparam.items():
     else:
         pl_args[key] = val
 
-trainer = L.Trainer(
+trainer = pl.Trainer(
     logger=tb_logger,
     **pl_args,
 )
