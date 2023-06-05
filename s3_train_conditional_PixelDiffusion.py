@@ -91,13 +91,13 @@ lr_monitor = LearningRateMonitor(logging_interval="step")
 early_stopping = EarlyStopping(
     monitor="val_loss",
     mode="min",
-    patience=20,
-    min_delta=1e-3,
+    patience=10,
+    min_delta=1e-4,
 )
 pl_args = {}
 for key, val in pl_hparam.items():
     if key == "ema_decay":
-        pl_args["callbacks"] = [EMA(val), lr_monitor]
+        pl_args["callbacks"] = [EMA(val), lr_monitor, early_stopping]
     else:
         pl_args[key] = val
 

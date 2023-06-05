@@ -15,7 +15,9 @@ def plot_map(
     plotting_config: Dict,
     title: str = "",
 ) -> None:
-    """Plot an xarray dataset as a map. The dataset is assumed to have dimensions lat and lon and trivial other dimensions and only contain a single variable. The function works by modifying an existing Axes object.
+    """Plot an xarray dataset as a map. The dataset is assumed to have dimensions lat and
+    lon and trivial other dimensions and only contain a single variable. The function works
+    by modifying an existing Axes object.
 
     Args:
         ax (plt.Axes): A matplotlib Axes to plot in.
