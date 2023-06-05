@@ -1,3 +1,9 @@
+import argparse
+from pathlib import Path
+
+import torch
+from torch.utils.data import DataLoader
+
 from dm_zoo.dff.PixelDiffusion import (
     PixelDiffusionConditional,
 )
@@ -8,11 +14,31 @@ from WD.io import load_config, create_xr_output_variables
 from WD.io import write_config
 import pytorch_lightning as pl
 
-from torch.utils.data import DataLoader
-import torch
+parser = argparse.ArgumentParser(
+    prog="Evaludate Model",
+    description="Evaluate Model based on dataset id and model id",
+    epilog="Arg parser for vanilla conditional diffusion model",
+)
 
-ds_id = "E0876B"
-run_id = "AEC30F"
+parser.add_argument(
+    "-did",
+    "--dataset_id",
+    type=str,
+    help="path under which the selected config file is stored.",
+)
+
+
+parser.add_argument(
+    "-mid",
+    "--model_id",
+    type=str,
+    help="path under which the selected config file is stored.",
+)
+
+args = parser.parse_args()
+
+ds_id = args.did
+run_id = args.mid
 
 model_config_path = "/data/compoundx/WeatherDiff/config_file/{}_{}.yml".format(
     ds_id, run_id
