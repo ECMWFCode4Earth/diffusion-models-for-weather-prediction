@@ -92,7 +92,7 @@ early_stopping = EarlyStopping(
     monitor="val_loss",
     mode="min",
     patience=10,
-    min_delta=1e-4,
+    min_delta=0,
 )
 pl_args = {}
 for key, val in pl_hparam.items():
