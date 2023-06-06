@@ -36,8 +36,8 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-ds_id = args.did
-run_id = args.mid
+ds_id = args.dataset_id
+run_id = args.model_id
 
 model_config_path = "/data/compoundx/WeatherDiff/config_file/{}_{}.yml".format(
     ds_id, run_id
