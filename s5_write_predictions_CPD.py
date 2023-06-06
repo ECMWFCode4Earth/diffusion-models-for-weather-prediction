@@ -18,7 +18,7 @@ import pytorch_lightning as pl
 import torch
 
 parser = argparse.ArgumentParser(
-    prog="Evaludate Model",
+    prog="Evaluate Model",
     description="Evaluate Model based on dataset id and model id",
     epilog="Arg parser for vanilla conditional diffusion model",
 )
