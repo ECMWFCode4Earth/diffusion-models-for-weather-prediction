@@ -63,7 +63,7 @@ model = PixelDiffusionConditional(
     generated_channels=ds_config.n_generated_channels,
     condition_channels=ds_config.n_condition_channels,
     lr=1e-4,
-    batch_size=16,
+    batch_size=64,
 )
 
 model_config = model.config()
@@ -76,7 +76,7 @@ tb_logger = pl_loggers.TensorBoardLogger(save_dir=model_dir)
 
 
 pl_hparam = {
-    "max_steps": 5e4,
+    "max_steps": 5e5,
     "ema_decay": 0.9999,
     "limit_val_batches": 1.0,
     "accelerator": "cuda",
@@ -97,7 +97,7 @@ early_stopping = EarlyStopping(
 pl_args = {}
 for key, val in pl_hparam.items():
     if key == "ema_decay":
-        pl_args["callbacks"] = [EMA(val), lr_monitor, early_stopping]
+        pl_args["callbacks"] = [EMA(val), lr_monitor] #, early_stopping]
     else:
         pl_args[key] = val
 
