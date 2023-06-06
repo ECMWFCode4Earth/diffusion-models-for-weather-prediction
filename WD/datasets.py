@@ -456,4 +456,4 @@ def custom_collate(batch, num_copies):
     inputs = torch.stack([sample[0] for sample in batch])
     targets = torch.stack([sample[1] for sample in batch])
     dates = torch.stack([sample[2] for sample in batch])
-    return [inputs.repeat(repeats=(num_copies,1,1,1)), targets.repeat(repeats=(num_copies,1,1,1)), dates.repeat(repeats=(num_copies,))]
+    return [inputs.repeat_interleave(num_copies, dim=0), targets.repeat_interleave(num_copies, dim=0), dates.repeat_interleave(num_copies, dim=0)]
