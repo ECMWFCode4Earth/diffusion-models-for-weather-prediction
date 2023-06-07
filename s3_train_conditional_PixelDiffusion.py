@@ -64,6 +64,7 @@ model = PixelDiffusionConditional(
     condition_channels=ds_config.n_condition_channels,
     lr=1e-4,
     batch_size=64,
+    cylindrical_padding=True
 )
 
 model_config = model.config()
@@ -92,12 +93,12 @@ early_stopping = EarlyStopping(
     monitor="val_loss",
     mode="min",
     patience=10,
-    min_delta=0,
+    min_delta=0
 )
 pl_args = {}
 for key, val in pl_hparam.items():
     if key == "ema_decay":
-        pl_args["callbacks"] = [EMA(val), lr_monitor] #, early_stopping]
+        pl_args["callbacks"] = [EMA(val), lr_monitor, early_stopping]
     else:
         pl_args[key] = val
 

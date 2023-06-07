@@ -67,10 +67,11 @@ restored_model = PixelDiffusionConditional.load_from_checkpoint(
     model_ckpt,
     generated_channels=model_config.model_hparam["generated_channels"],
     condition_channels=model_config.model_hparam["condition_channels"],
+    cylindrical_padding=True
 )
 
 B = 128
-num_copies = 2
+num_copies = 1
 
 dl = DataLoader(ds, batch_size=B, shuffle=False, collate_fn=lambda x: custom_collate(x, num_copies=num_copies))
 
@@ -79,7 +80,6 @@ out = trainer.predict(restored_model, dl)
 
 out = torch.cat(out, dim=0)
 out = out.view(-1, num_copies, *out.shape[1:]).transpose(0,1)
-
 
 model_output_dir = model_output_dir / model_config.ds_id
 create_dir(model_output_dir)
