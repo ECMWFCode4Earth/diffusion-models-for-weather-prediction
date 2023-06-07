@@ -17,7 +17,7 @@ model = PixelDiffusion(
     train_dataset=train_ds,
     lr=1e-4,
     batch_size=16,
-)
+    cylindrical_padding=True)
 
 tb_logger = pl_loggers.TensorBoardLogger(
     save_dir="/data/compoundx/ml_models/diffusion_models/"

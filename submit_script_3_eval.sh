@@ -14,4 +14,4 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate TORCH311
 
-srun python s5_write_predictions_CPD.py -did 278771 -mid BB7742
+srun python s5_write_predictions_CPD.py -did 278771 -mid 011A3B
