@@ -40,8 +40,8 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-ds_id = args.did
-run_id = args.mid
+ds_id = args.dataset_id
+run_id = args.model_id
 
 model_config_path = "/data/compoundx/WeatherDiff/config_file/{}_{}.yml".format(
     ds_id, run_id
@@ -78,14 +78,14 @@ trainer = pl.Trainer()
 out = trainer.predict(restored_model, dl)
 
 out = torch.cat(out, dim=0)
-print(type(out), out.get_device())
+out = out.view(-1, num_copies, *out.shape[1:]).transpose(0,1)
 
 
 model_output_dir = model_output_dir / model_config.ds_id
 create_dir(model_output_dir)
 
-targets = ds[:][1].repeat_interleave(num_copies, dim=0)  # need to repeat here to keep shape identical to predictions.
-dates = ds[:][2].repeat_interleave(num_copies, dim=0)  # need to repeat here to keep shape identical to predictions.
+targets = ds[:][1].view(1, *ds[:][1].shape)  # need the view to create axis for different ensemble members (although only 1 here).
+dates = ds[:][2]
 
 gen_xr = create_xr_output_variables(
     out,
@@ -99,6 +99,7 @@ gen_xr = create_xr_output_variables(
         )
     ),
 )
+
 target_xr = create_xr_output_variables(
     targets,
     dates=dates,
@@ -122,5 +123,5 @@ print(f"Target data written at: {target_dir}")
 
 model_config.file_structure.dir_model_output = str(model_output_dir)
 
-write_config(model_config)
+# write_config(model_config)
 # Write config is possible deletes and rewrites

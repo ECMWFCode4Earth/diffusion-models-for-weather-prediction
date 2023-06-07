@@ -155,7 +155,7 @@ def create_xr_output_variables(
     config_file_path: str,
     min_max_file_path: str,
 ) -> None:
-    """Create an xarray dataset with dimensions [init_time, lead_time, lat, lon] from a data tensor with shape (n_init_times, n_variables, n_lat, n_lon)
+    """Create an xarray dataset with dimensions [ensemble_member, init_time, lead_time, lat, lon] from a data tensor with shape (n_ensemble_members, n_init_times, n_variables, n_lat, n_lon)
 
     Args:
         data (torch.tensor): Data to be rescaled and read into an xarray dataset.
@@ -197,6 +197,9 @@ def create_xr_output_variables(
     ds = ds.expand_dims({"lead_time": 1}).assign_coords(
         {"lead_time": [lead_time]}
     )
+    ds = ds.expand_dims({"ensemble_member": data.shape[0]}).assign_coords(
+        {"ensemble_member": np.arange(data.shape[0])}
+    )
     ds = ds.expand_dims({"init_time": len(dates)}).assign_coords(
         {"init_time": pd.to_datetime(dates)}
     )  # maybe need .numpy() here
@@ -214,11 +217,12 @@ def create_xr_output_variables(
         if "_max" in name
     ]
 
-    for i in range(data.shape[1]):
+    for i in range(data.shape[2]):
         ds[var_names[i]] = xr.DataArray(
-            data[:, i : i + 1, ...],  # noqa E203
-            dims=("init_time", "lead_time", "lat", "lon"),
+            data[:, :, i : i + 1, ...],  # noqa E203
+            dims=("ensemble_member", "init_time", "lead_time", "lat", "lon"),
             coords={
+                "ensemble_member": ds.ensemble_member,
                 "lat": ds.lat,
                 "lon": ds.lon,
                 "lead_time": ds.lead_time,
