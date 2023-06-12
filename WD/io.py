@@ -212,7 +212,7 @@ def create_xr_output_variables(
     ds_min_max = xr.open_dataset(min_max_file_path)
     # get list of variables, hopefully in the same order as the channels:
     var_names = [
-        name.rstrip("_max")
+        name.replace("_max", "")
         for name in list(ds_min_max.var())
         if "_max" in name
     ]
