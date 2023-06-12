@@ -77,7 +77,7 @@ tb_logger = pl_loggers.TensorBoardLogger(save_dir=model_dir)
 
 
 pl_hparam = {
-    "max_steps": 5e4,
+    "max_steps": 5e5,
     "ema_decay": 0.9999,
     "limit_val_batches": 1.0,
     "limit_test_batches": 1.0,

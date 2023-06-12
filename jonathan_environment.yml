@@ -22,4 +22,6 @@ dependencies:
   - tensorboard
   - cartopy
   - munch
+  - pytest
+  - scipy
 

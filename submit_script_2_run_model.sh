@@ -5,8 +5,8 @@
 #SBATCH -G nvidia-a100:1
 #SBATCH --mem-per-cpu=16G
 # output files
-#SBATCH -o /data/compoundx/WeatherDiff/job_logs/%x-%u-%j.out
-#SBATCH -e /data/compoundx/WeatherDiff/job_logs/%x-%u-%j.err
+#SBATCH -o /data/compoundx/WeatherDiff/job_log/%x-%u-%j.out
+#SBATCH -e /data/compoundx/WeatherDiff/job_log/%x-%u-%j.err
 
 # read in command line arguments:
 helpFunction()
@@ -19,7 +19,6 @@ helpFunction()
 
 while getopts "d:" opt
 do
-   echo "$opt"
    case "$opt" in
       d ) DatasetID="$OPTARG" ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
@@ -29,7 +28,7 @@ done
 # Print helpFunction in case parameters are empty
 if [ -z "$DatasetID" ]
 then
-   echo "Some or all of the parameters are empty";
+   echo "Some or all of the parameters are empty.";
    helpFunction
 fi
 # end reading command line arguments
@@ -39,5 +38,5 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate TORCH311
 
-srun python s3_train_conditional_PixelDiffusion.py  -did $DatasetID
+srun python s2_train_conditional_PixelDiffusion.py  -did $DatasetID
 

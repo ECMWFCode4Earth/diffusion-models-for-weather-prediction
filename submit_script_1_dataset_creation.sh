@@ -5,8 +5,8 @@
 #SBATCH --mem-per-cpu=32G
 
 # output files
-#SBATCH -o /data/compoundx/WeatherDiff/job_logs/%x-%u-%j.out
-#SBATCH -e /data/compoundx/WeatherDiff/job_logs/%x-%u-%j.err
+#SBATCH -o /data/compoundx/WeatherDiff/job_log/%x-%u-%j.out
+#SBATCH -e /data/compoundx/WeatherDiff/job_log/%x-%u-%j.err
 
 # begin reading command line arguments
 helpFunction()
@@ -19,7 +19,6 @@ helpFunction()
 
 while getopts "p:" opt
 do
-   echo "$opt"
    case "$opt" in
       p ) ConfigPath="$OPTARG" ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
@@ -29,7 +28,7 @@ done
 # Print helpFunction in case parameters are empty
 if [ -z "$ConfigPath" ]
 then
-   echo "Some or all of the parameters are empty";
+   echo "Some or all of the parameters are empty.";
    helpFunction
 fi
 # stop reading command line arguments
