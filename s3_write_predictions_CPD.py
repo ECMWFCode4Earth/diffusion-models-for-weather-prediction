@@ -38,10 +38,18 @@ parser.add_argument(
     help="path under which the selected config file is stored.",
 )
 
+parser.add_argument(
+    "-nens",
+    "--n_ensemble_members",
+    type=int,
+    help="the number of ensemble members to be produced.",
+)
+
 args = parser.parse_args()
 
 ds_id = args.dataset_id
 run_id = args.model_id
+nens = args.n_ensemble_members
 
 model_config_path = "/data/compoundx/WeatherDiff/config_file/{}_{}.yml".format(
     ds_id, run_id
@@ -71,7 +79,7 @@ restored_model = PixelDiffusionConditional.load_from_checkpoint(
 )
 
 B = 128
-num_copies = 1
+num_copies = nens
 
 dl = DataLoader(ds, batch_size=B, shuffle=False, collate_fn=lambda x: custom_collate(x, num_copies=num_copies))
 

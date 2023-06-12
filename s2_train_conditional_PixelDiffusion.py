@@ -80,6 +80,7 @@ pl_hparam = {
     "max_steps": 5e5,
     "ema_decay": 0.9999,
     "limit_val_batches": 1.0,
+    "limit_test_batches": 1.0,
     "accelerator": "cuda",
     "devices": -1,
 }
@@ -98,7 +99,7 @@ early_stopping = EarlyStopping(
 pl_args = {}
 for key, val in pl_hparam.items():
     if key == "ema_decay":
-        pl_args["callbacks"] = [EMA(val), lr_monitor, early_stopping]
+        pl_args["callbacks"] = [EMA(val), lr_monitor] # , early_stopping]
     else:
         pl_args[key] = val
 

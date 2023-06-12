@@ -3,7 +3,6 @@ import os
 
 from WD.datasets import write_conditional_datasets
 
-
 parser = argparse.ArgumentParser(
     prog="WeatherDiffCondVanilla",
     description="Vanilla Conditional Diffusion Model",
