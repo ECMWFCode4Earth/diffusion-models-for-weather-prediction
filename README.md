@@ -1,6 +1,6 @@
 # WeatherDiff
 
-![image](https://github.com/ECMWFCode4Earth/diffusion-models-for-weather-prediction/assets/44346640/b8048577-a7ae-4ef6-872c-8a56ab8bf931)
+![Uploading image.png…]()
 
 
 ## Getting started
