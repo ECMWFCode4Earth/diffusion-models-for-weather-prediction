@@ -14,6 +14,11 @@ Installation options will be included in the future.
 This repository is part of a [ECMWF Code4Earth Project](https://github.com/ECMWFCode4Earth/diffusion-models-for-weather-prediction), which takes place between May 1 2023 and September 20 2023.
 
 ## Installation
+- Detailed installation instructions will follow.
+- The repository is formatted with black formatter and also uses pre-commit
+  - make sure that pre-commit package is installed or `pip install pre-commit`
+  - to set up the git hook scripts `pre-commit install.
+
 - The main repository has two submodules that can be installed as follows:
 
 Clone the main repository.
