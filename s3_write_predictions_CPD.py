@@ -7,15 +7,11 @@ from torch.utils.data import DataLoader
 from dm_zoo.dff.PixelDiffusion import (
     PixelDiffusionConditional,
 )
-from pathlib import Path
 from WD.datasets import Conditional_Dataset, custom_collate
-from dm_zoo.dff import PixelDiffusionConditional
-from torch.utils.data import DataLoader
 from WD.utils import create_dir
 from WD.io import load_config, create_xr_output_variables
-from WD.io import write_config
+from WD.io import write_config  # noqa F401
 import pytorch_lightning as pl
-import torch
 
 parser = argparse.ArgumentParser(
     prog="Evalulate Model",
@@ -75,24 +71,33 @@ restored_model = PixelDiffusionConditional.load_from_checkpoint(
     model_ckpt,
     generated_channels=model_config.model_hparam["generated_channels"],
     condition_channels=model_config.model_hparam["condition_channels"],
-    cylindrical_padding=True
+    cylindrical_padding=True,
 )
 
 B = 128
 num_copies = nens
 
-dl = DataLoader(ds, batch_size=B, shuffle=False, collate_fn=lambda x: custom_collate(x, num_copies=num_copies))
+dl = DataLoader(
+    ds,
+    batch_size=B,
+    shuffle=False,
+    collate_fn=lambda x: custom_collate(x, num_copies=num_copies),
+)
 
 trainer = pl.Trainer()
 out = trainer.predict(restored_model, dl)
 
 out = torch.cat(out, dim=0)
-out = out.view(-1, num_copies, *out.shape[1:]).transpose(0,1)
+out = out.view(-1, num_copies, *out.shape[1:]).transpose(0, 1)
 
 model_output_dir = model_output_dir / model_config.ds_id
 create_dir(model_output_dir)
 
-targets = ds[:][1].view(1, *ds[:][1].shape)  # need the view to create axis for different ensemble members (although only 1 here).
+# need the view to create axis for
+# different ensemble members (although only 1 here).
+
+targets = ds[:][1].view(1, *ds[:][1].shape)
+
 dates = ds[:][2]
 
 gen_xr = create_xr_output_variables(
@@ -131,5 +136,7 @@ print(f"Target data written at: {target_dir}")
 
 model_config.file_structure.dir_model_output = str(model_output_dir)
 
-# write_config(model_config)
+# print(model_config)
+
+# write_config(model_config) #! Check this
 # Write config is possible deletes and rewrites
