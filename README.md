@@ -7,9 +7,6 @@ This Code4Earth challenge explores the potential of Diffusion Models for weather
 
 This repository contains functions to benchmark the diffusion models developed in [diffusion-models-for-weather-prediction](https://github.com/ECMWFCode4Earth/diffusion-models-for-weather-prediction). It builds on existing code from [WeatherBench](https://github.com/pangeo-data/WeatherBench).
 
-## Installation
-Installation options will be included in the future.
-
 ## Roadmap
 This repository is part of a [ECMWF Code4Earth Project](https://github.com/ECMWFCode4Earth/diffusion-models-for-weather-prediction), which takes place between May 1 2023 and September 20 2023.
 
