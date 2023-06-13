@@ -24,3 +24,21 @@ Clone the `<subodules>` | Make sure you have access to them.
 1. `git submodule init`
 2. `git submodule update`
 
+## Contributing
+Script on guidelines for contributions will be added in the future.
+
+## Authors and acknowledgment
+Participants:
+- [Mohit Anand](https://github.com/melioristic)
+- [Jonathan Wider](https://github.com/jonathanwider)
+
+Mentors:
+- [Jesper Dramsch](https://github.com/JesperDramsch)
+- [Florian Pinault](https://github.com/floriankrb)
+
+## License
+This project is licensed under the [Apache 2.0 License](https://github.com/melioristic/benchmark/blob/main/LICENSE). The submodules contain code from external sources and are subject to the licenses included in these submodules.
+
+## Project status
+Under active developement.
+
