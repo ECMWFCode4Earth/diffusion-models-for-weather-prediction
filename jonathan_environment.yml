@@ -1,6 +1,7 @@
 name: TORCH311
 channels:
   - defaults
+  - conda-forge
 dependencies:
   - python=3.11
   - cudatoolkit
@@ -24,4 +25,5 @@ dependencies:
   - munch
   - pytest
   - scipy
+  - xskillscore
 
