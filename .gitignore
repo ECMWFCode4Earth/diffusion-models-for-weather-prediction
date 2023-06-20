@@ -136,6 +136,4 @@ lightning_logs/
 
 # pycache
 
-WD/__pycache__
-benchmark/bm/__pycache__
-dm_zoo/dff/__pycache__
+**/__pycache__/
