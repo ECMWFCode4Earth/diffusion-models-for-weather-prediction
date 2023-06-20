@@ -1,5 +1,5 @@
 import argparse
-
+import torch
 import pytorch_lightning as pl
 from pytorch_lightning import loggers as pl_loggers
 
@@ -7,8 +7,9 @@ from dm_zoo.dff.EMA import EMA
 from dm_zoo.dff.PixelDiffusion import (
     PixelDiffusionConditional,
 )
+
+from WD.utils import AreaWeightedMSELoss
 from WD.datasets import Conditional_Dataset
-import torch
 from WD.utils import check_devices, create_dir, generate_uid
 from WD.io import write_config, load_config
 from pytorch_lightning.callbacks import LearningRateMonitor
@@ -33,7 +34,6 @@ parser.add_argument(
 print(f"The torch version being used is {torch.__version__}")
 check_devices()
 
-
 args = parser.parse_args()
 
 ds_id = args.dataset_id
@@ -46,6 +46,7 @@ else:
 ds_config_path = f"/data/compoundx/WeatherDiff/config_file/{ds_id}.yml"
 ds_config = load_config(ds_config_path)
 
+loss_fn = AreaWeightedMSELoss(ds_config.data_specs.spatial_resolution).loss_fn
 
 train_ds_path = ds_config.file_structure.dir_model_input + f"{ds_id}_train.pt"
 train_ds = Conditional_Dataset(train_ds_path, ds_config_path)
@@ -64,7 +65,8 @@ model = PixelDiffusionConditional(
     condition_channels=ds_config.n_condition_channels,
     lr=1e-4,
     batch_size=64,
-    cylindrical_padding=True
+    cylindrical_padding=True,
+    loss_fn=loss_fn,
 )
 
 model_config = model.config()
@@ -91,15 +93,12 @@ assert (
 
 lr_monitor = LearningRateMonitor(logging_interval="step")
 early_stopping = EarlyStopping(
-    monitor="val_loss",
-    mode="min",
-    patience=10,
-    min_delta=0
+    monitor="val_loss", mode="min", patience=10, min_delta=0
 )
 pl_args = {}
 for key, val in pl_hparam.items():
     if key == "ema_decay":
-        pl_args["callbacks"] = [EMA(val), lr_monitor] # , early_stopping]
+        pl_args["callbacks"] = [EMA(val), lr_monitor]  # , early_stopping]
     else:
         pl_args[key] = val
 
