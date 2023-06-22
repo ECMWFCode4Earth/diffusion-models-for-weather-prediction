@@ -2,9 +2,11 @@ from typing import Dict, List, Tuple, Union
 import xarray as xr
 import numpy as np
 
+import zarr
+
 import os
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, IterableDataset
 
 from WD.io import write_config, load_config
 
@@ -264,7 +266,7 @@ def write_conditional_datasets(config_path: str) -> None:
         )
     )
 
-    print("Slice into train, test and validation set and write to .pt files.")
+    print("Slice into train, test and validation set and write to files.")
     test_inputs = conditioning_dataset.sel({"time": slice(*test_limits)})
     assert contains_no_nans(test_inputs), (
         "test_inputs data set contains missing values,"
@@ -289,7 +291,8 @@ def write_conditional_datasets(config_path: str) -> None:
         " possibly because of the precipitation"
         " computation."
     )
-    write_to_pytorch(
+
+    write_to_zarr(
         "train",
         train_inputs,
         train_targets,
@@ -297,7 +300,7 @@ def write_conditional_datasets(config_path: str) -> None:
         out_dir=out_dir,
         out_filename=out_filename,
     )
-    write_to_pytorch(
+    write_to_zarr(
         "test",
         test_inputs,
         test_targets,
@@ -321,7 +324,7 @@ def write_conditional_datasets(config_path: str) -> None:
             " computation."
         )
 
-        write_to_pytorch(
+        write_to_zarr(
             "val",
             val_inputs,
             val_targets,
@@ -421,6 +424,33 @@ def write_to_pytorch(
             ),
         )
 
+def write_to_zarr(
+    ds_type: str,
+    inputs: xr.Dataset,
+    targets: xr.Dataset,
+    constants: xr.Dataset,
+    out_dir: str,
+    out_filename: str,
+    time_chunksize: int=10000
+) -> None:
+    path = os.path.join(out_dir,"{}_{}.zarr".format(out_filename, ds_type))
+    zarr.open(path, mode="w")
+    
+    compressor = None
+    if len(constants.var()) > 0:
+        ds = inputs.to_array().chunk({"time":time_chunksize, "variable":len(inputs.var())}).transpose("time", "variable", "lat", "lon").to_dataset(name="data")
+        ds.to_zarr(os.path.join(path,"inputs"), encoding={x: {"compressor": compressor} for x in ds})
+        ds = targets.to_array().chunk({"time":time_chunksize, "variable":len(targets.var())}).transpose("time", "variable", "lat", "lon").to_dataset(name="data")
+        ds.to_zarr(os.path.join(path,"targets"), encoding={x: {"compressor": compressor} for x in ds})
+        ds = constants.to_array().chunk({"variable":len(constants.var())}).to_dataset(name="data")
+        ds.to_zarr(os.path.join(path,"constants"), encoding={x: {"compressor": compressor} for x in ds})
+    else:
+        ds = inputs.to_array().chunk({"time":time_chunksize, "variable":len(inputs.var())}).transpose("time", "variable", "lat", "lon").to_dataset(name="data")
+        ds.to_zarr(os.path.join(path,"inputs"), encoding={x: {"compressor": compressor} for x in ds})
+        ds = targets.to_array().chunk({"time":time_chunksize, "variable":len(targets.var())}).transpose("time", "variable", "lat", "lon").to_dataset(name="data")
+        ds.to_zarr(os.path.join(path,"targets"), encoding={x: {"compressor": compressor} for x in ds})
+        ds = xr.DataArray(name="data", data=[]).to_dataset()
+        ds.to_zarr(os.path.join(path,"constants"), encoding={x: {"compressor": compressor} for x in ds})
 
 def contains_no_nans(ds: xr.Dataset):
     return bool(ds.to_array().notnull().all().any())
@@ -530,6 +560,177 @@ class Conditional_Dataset(Dataset):
         time = self.time[indices + self.max_abs_c_t]
 
         return input, target, time
+
+
+class Conditional_Dataset_Zarr(Dataset):
+    """Dataset when using past steps as conditioning information
+    and predicting into the future."""
+
+    def __init__(self, zarr_file_path, config_file_path):
+        self.path = zarr_file_path
+        data = zarr.open(self.path, mode="r")
+
+        # we need to load the lead time and the conditioning time steps
+        config = load_config(config_file_path)
+        self.lead_time = config.data_specs.lead_time
+        self.conditioning_timesteps = torch.tensor(
+            config.data_specs.conditioning_time_step,
+            dtype=torch.int,
+        )
+        self.max_abs_c_t = max(abs(self.conditioning_timesteps))
+
+        assert self.lead_time > 0
+
+        self.time = data["inputs"]["time"]
+        self.inputs = data["inputs"]["data"]
+        self.targets = data["targets"]["data"]
+        self.constants = data["constants"]["data"]
+
+        self.indices = torch.arange(
+            len(self.inputs) - self.lead_time - self.max_abs_c_t,
+            dtype=torch.int,
+        )
+
+        if len(self.constants) == 0:
+            self.constants = torch.empty(
+                1, 0, *self.targets.shape[2:]
+            ).float()  # TODO remove for newer datasets
+        else:
+            self.constants = torch.tensor(self.constants[:]).float()
+
+    def __len__(self):
+        return len(self.inputs) - self.lead_time - self.max_abs_c_t
+
+    def __getitem__(self, idx):
+        # this is not optimal - but the only way I could
+        # come up with to also be able to use slices here.
+        indices = self.indices[idx]
+        indexing_array = indices.view(-1, 1) + self.conditioning_timesteps.view(1, -1)+ self.max_abs_c_t
+        input = torch.tensor(self.inputs.oindex[list(indexing_array.ravel()), :, :, :])
+        input = input.view(indices.numel(), -1,
+            *input.shape[2:],
+        )
+
+        input = torch.concatenate(
+            (
+                input,
+                self.constants.repeat(input.shape[0], 1, 1, 1),
+            ),
+            dim=1,
+        ).squeeze(dim=0)
+        target_indices = np.atleast_1d((indices + self.max_abs_c_t + self.lead_time))
+        target = torch.tensor(self.targets.oindex[target_indices,:,:,:]).squeeze(dim=0)
+        # torch.squeeze is necessary because we want a
+        # trivial first dimension if it has only one element.
+
+        # return the init_time of the forecast:
+        time = self.time[np.atleast_1d(indices + self.max_abs_c_t)]
+
+        return input, target, time
+    
+
+class Conditional_Dataset_Zarr_Iterable(IterableDataset):
+    def __init__(self, zarr_file_path, config_file_path, shuffle_chunks=False, shuffle_in_chunks=False):
+        super(Conditional_Dataset_Zarr_Iterable).__init__()
+        self.path = zarr_file_path
+        self.data = zarr.open(self.path, mode="r")
+
+        self.array_inputs = self.data.inputs.data
+        self.array_targets = self.data.targets.data
+        self.array_constants = self.data.constants.data    
+
+        # we need to load the lead time and the conditioning time steps
+        config = load_config(config_file_path)
+        self.lead_time = config.data_specs.lead_time
+        self.conditioning_timesteps = torch.tensor(
+            config.data_specs.conditioning_time_step,
+            dtype=int,
+        )
+        self.max_abs_c_t = max(abs(self.conditioning_timesteps)).numpy()
+
+        self.chunk_size = self.array_targets.chunks[0]
+        self.n_chunks = self.array_targets.nchunks
+
+        self.start = self.max_abs_c_t
+        self.stop = self.array_targets.shape[0] - self.lead_time
+
+
+        self.indices = torch.ones(self.n_chunks*self.chunk_size, dtype=bool)
+        self.indices[:self.start] = False
+        self.indices[self.stop:] = False
+        self.indices = self.indices.view(self.n_chunks, self.chunk_size)
+
+        self.ordered_time = np.array(self.data.targets.time[:])[self.start:self.stop]
+
+        self.shuffle_chunks = shuffle_chunks
+        self.shuffle_in_chunks = shuffle_in_chunks
+
+    def __iter__(self):
+        worker_info = torch.utils.data.get_worker_info()
+        
+        if worker_info is None:  # single-process data loading, return the full iterator
+            chunk_start = 0
+            chunk_stop = self.n_chunks
+        else:
+            per_worker = int(np.ceil(self.n_chunks / float(worker_info.num_workers)))
+            worker_id = worker_info.id
+            chunk_start = 0 + worker_id * per_worker
+            chunk_stop = min(chunk_start + per_worker, self.n_chunks)    
+        if self.shuffle_chunks:
+            perm = np.random.permutation(np.arange(chunk_start, chunk_stop))
+        else:
+            perm = np.arange(chunk_start, chunk_stop)
+
+        n_previous_chunks_required_in_memory = np.ceil(self.max_abs_c_t / self.chunk_size).astype(int)
+        n_future_chunks_required_in_memory = np.ceil(self.lead_time / self.chunk_size).astype(int)
+
+        for i_chunk in perm:
+            valid_indices = torch.where(self.indices[i_chunk].ravel() == True)[0]
+            # print(torch.amin(valid_indices), torch.amax(valid_indices))
+            chunks_input = torch.tensor(self.array_inputs.oindex[np.arange(max((i_chunk - n_previous_chunks_required_in_memory) * self.chunk_size, 0), min((i_chunk + n_future_chunks_required_in_memory + 1)*self.chunk_size, self.array_inputs.shape[0]), dtype=int),:,:,:], dtype=torch.float)
+            chunks_targets = torch.tensor(self.array_targets.oindex[np.arange(max((i_chunk - n_previous_chunks_required_in_memory) * self.chunk_size, 0), min((i_chunk + n_future_chunks_required_in_memory + 1)*self.chunk_size, self.array_inputs.shape[0]), dtype=int),:,:,:], dtype=torch.float)
+
+            # depending on where we are in the chunks, a varying number of previous chunks can be loaded into memory. We need to compensate for this in our indexing.
+            i_offset = self.chunk_size * min(n_previous_chunks_required_in_memory, i_chunk)
+
+            if self.shuffle_in_chunks:
+                perm_in_chunk = valid_indices[torch.randperm(len(valid_indices))] + i_offset
+            else:
+                perm_in_chunk = valid_indices + i_offset
+
+            for i_in_chunk in perm_in_chunk:
+                # print(i_in_chunk)
+                input_data = chunks_input[self.get_conditioning_indices(i_in_chunk)]
+                input_data = input_data.view(len(self.conditioning_timesteps)*input_data.shape[1], *input_data.shape[2:])
+                output_data = chunks_targets[self.get_target_indices(i_in_chunk)]
+                input_data = torch.concatenate((input_data, torch.tensor(self.array_constants[:], dtype=torch.float)), dim=0)
+                yield input_data, output_data
+
+        """
+        current_chunk = -1
+        
+        for j in np.arange(iter_start, iter_stop):
+            if j >= (current_chunk+1) * self.chunk_size:
+                chunks_input = torch.tensor(self.array_inputs.oindex[np.arange(current_chunk * self.chunk_size, min((chunks_per_size + 1 + current_chunk) * self.chunk_size, self.stop), dtype=int),:,:,:], dtype=torch.float)
+                chunks_targets= torch.tensor(self.array_targets.oindex[np.arange(current_chunk * self.chunk_size, min((chunks_per_size + 1 + current_chunk) * self.chunk_size, self.stop), dtype=int),:,:,:], dtype=torch.float)
+                current_chunk = j // self.chunk_size
+
+            input_data = chunks_input[self.get_conditioning_indices(j) % self.chunk_size]
+            input_data = input_data.view(len(self.conditioning_timesteps)*input_data.shape[1], *input_data.shape[2:])
+            output_data = chunks_targets[self.get_target_indices(j) % self.chunk_size]
+
+            input_data = torch.concatenate((input_data, torch.tensor(self.array_constants[:], dtype=torch.float)), dim=0)
+            # print(input_data.shape, output_data.shape)
+            yield input_data, output_data
+        """
+
+    def get_conditioning_indices(self, index):
+        return self.conditioning_timesteps + index
+
+    def get_target_indices(self, index):
+        return index + self.lead_time
+
+
 
 
 # to be used in dataloader for ensemble evaluation:

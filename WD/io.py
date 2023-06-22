@@ -121,7 +121,7 @@ def n_condition_channels(config):
     n_level = n_level * len(config.data_specs.conditioning_time_step)
     n_level = (
         n_level + len(config.data_specs.constants)
-        if "constants" in config.data_specs
+        if config.data_specs.constants is not None
         else n_level
     )
     return n_level

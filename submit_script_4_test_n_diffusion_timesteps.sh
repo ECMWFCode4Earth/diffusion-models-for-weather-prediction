@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#SBATCH --job-name=CreateData
+#SBATCH --job-name=EvalCond
 #SBATCH --time=0-03:45:00
+#SBATCH -G nvidia-a100:1
 #SBATCH --mem-per-cpu=16G
-
 # output files
 #SBATCH -o /data/compoundx/WeatherDiff/job_log/%x-%u-%j.out
 #SBATCH -e /data/compoundx/WeatherDiff/job_log/%x-%u-%j.err
@@ -12,21 +12,25 @@
 helpFunction()
 {
    echo ""
-   echo "Usage: $0 -p Path"
-   echo -e "\t-p The path to a template configuration file to use in the dataset creation."
+   echo "Usage: $0 -d DatasetID -m ModelID -e EnsembleMembers"
+   echo -e "\t-d The ID of the dataset the model was trained on."
+   echo -e "\t-m The ID of the model the predictions were created with."
+   echo -e "\t-e The number of ensemble members to be created."
    exit 1 # Exit script after printing help
 }
 
-while getopts "p:" opt
+while getopts "d:m:e:" opt
 do
    case "$opt" in
-      p ) ConfigPath="$OPTARG" ;;
+      d ) DatasetID="$OPTARG" ;;
+      m ) ModelID="$OPTARG" ;;
+      e ) EnsembleMembers="$OPTARG" ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
    esac
 done
 
 # Print helpFunction in case parameters are empty
-if [ -z "$ConfigPath" ]
+if [ -z "$DatasetID" ] || [ -z "$ModelID" ] || [ -z "$EnsembleMembers" ]
 then
    echo "Some or all of the parameters are empty.";
    helpFunction
@@ -38,4 +42,4 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate TORCH311
 
-srun python s1_write_dataset.py  -cf $ConfigPath
+srun python s4_test_n_diffusion_timesteps.py -did $DatasetID -mid $ModelID -nens $EnsembleMembers

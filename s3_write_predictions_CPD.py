@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from dm_zoo.dff.PixelDiffusion import (
     PixelDiffusionConditional,
 )
-from WD.datasets import Conditional_Dataset, custom_collate
+from WD.datasets import Conditional_Dataset_Zarr_Iterable, custom_collate
 from WD.utils import create_dir
 from WD.io import load_config, create_xr_output_variables
 from WD.io import write_config  # noqa F401
@@ -47,6 +47,9 @@ ds_id = args.dataset_id
 run_id = args.model_id
 nens = args.n_ensemble_members
 
+B = 128
+num_copies = nens
+
 model_config_path = "/data/compoundx/WeatherDiff/config_file/{}_{}.yml".format(
     ds_id, run_id
 )
@@ -60,9 +63,9 @@ model_load_dir = (
     / "lightning_logs/version_0/checkpoints/"
 )
 
-ds = Conditional_Dataset(
-    "/data/compoundx/WeatherDiff/model_input/{}_test.pt".format(ds_id),
-    "/data/compoundx/WeatherDiff/config_file/{}.yml".format(ds_id),
+ds = Conditional_Dataset_Zarr_Iterable(
+    "/data/compoundx/WeatherDiff/model_input/{}_test.zarr".format(ds_id),
+    "/data/compoundx/WeatherDiff/config_file/{}.yml".format(ds_id)
 )
 
 model_ckpt = [x for x in model_load_dir.iterdir()][0]
@@ -71,17 +74,22 @@ restored_model = PixelDiffusionConditional.load_from_checkpoint(
     model_ckpt,
     generated_channels=model_config.model_hparam["generated_channels"],
     condition_channels=model_config.model_hparam["condition_channels"],
-    cylindrical_padding=True,
+    cylindrical_padding=True
 )
 
-B = 128
-num_copies = nens
 
+
+"""
 dl = DataLoader(
     ds,
     batch_size=B,
     shuffle=False,
     collate_fn=lambda x: custom_collate(x, num_copies=num_copies),
+)
+"""
+dl = DataLoader(
+    ds,
+    batch_size=B
 )
 
 trainer = pl.Trainer()
@@ -96,9 +104,9 @@ create_dir(model_output_dir)
 # need the view to create axis for
 # different ensemble members (although only 1 here).
 
-targets = ds[:][1].view(1, *ds[:][1].shape)
+targets = torch.tensor(ds.data.targets.data[ds.start:ds.stop], dtype=torch.float).unsqueeze(dim=0)
 
-dates = ds[:][2]
+dates = ds.time
 
 gen_xr = create_xr_output_variables(
     out,
