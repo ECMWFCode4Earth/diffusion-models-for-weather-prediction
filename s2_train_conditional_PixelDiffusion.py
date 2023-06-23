@@ -42,7 +42,7 @@ print(f"Loading dataset from {ds_id}.yaml")
 ds_config_path = f"/data/compoundx/WeatherDiff/config_file/{ds_id}.yml"
 ds_config = load_config(ds_config_path)
 
-loss_fn = AreaWeightedMSELoss(ds_config.data_specs.spatial_resolution).loss_fn
+loss_fn = torch.nn.functional.mse_loss # AreaWeightedMSELoss(ds_config.data_specs.spatial_resolution).loss_fn
 
 train_ds_path = ds_config.file_structure.dir_model_input + f"{ds_id}_train.zarr"
 train_ds = Conditional_Dataset_Zarr_Iterable(train_ds_path, ds_config_path, shuffle_chunks=True, shuffle_in_chunks=True)
@@ -61,7 +61,7 @@ model = PixelDiffusionConditional(
     condition_channels=ds_config.n_condition_channels,
     batch_size=64,
     cylindrical_padding=True,
-    learning_rate=1e-4
+    lr=1e-4,
     loss_fn=loss_fn,
 )
 

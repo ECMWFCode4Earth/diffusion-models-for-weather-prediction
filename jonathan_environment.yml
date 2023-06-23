@@ -27,4 +27,5 @@ dependencies:
   - scipy
   - xskillscore
   - zarr
+  - h5py  # temporary
 
