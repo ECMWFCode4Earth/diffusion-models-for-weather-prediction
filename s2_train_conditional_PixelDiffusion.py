@@ -9,7 +9,7 @@ from dm_zoo.dff.PixelDiffusion import (
 )
 from WD.datasets import Conditional_Dataset_Zarr_Iterable
 import torch
-from WD.utils import check_devices, create_dir, generate_uid
+from WD.utils import check_devices, create_dir, generate_uid, AreaWeightedMSELoss
 from WD.io import write_config, load_config
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.callbacks.early_stopping import (
@@ -42,7 +42,7 @@ print(f"Loading dataset from {ds_id}.yaml")
 ds_config_path = f"/data/compoundx/WeatherDiff/config_file/{ds_id}.yml"
 ds_config = load_config(ds_config_path)
 
-loss_fn = torch.nn.functional.mse_loss # AreaWeightedMSELoss(ds_config.data_specs.spatial_resolution).loss_fn
+
 
 train_ds_path = ds_config.file_structure.dir_model_input + f"{ds_id}_train.zarr"
 train_ds = Conditional_Dataset_Zarr_Iterable(train_ds_path, ds_config_path, shuffle_chunks=True, shuffle_in_chunks=True)
@@ -50,9 +50,10 @@ train_ds = Conditional_Dataset_Zarr_Iterable(train_ds_path, ds_config_path, shuf
 val_ds_path = ds_config.file_structure.dir_model_input + f"{ds_id}_val.zarr"
 val_ds = Conditional_Dataset_Zarr_Iterable(val_ds_path, ds_config_path, shuffle_chunks=True, shuffle_in_chunks=True)
 
-# pytorch lightening hyperparams
+lat_grid = train_ds.data.targets.lat[:]
+lon_grid =  train_ds.data.targets.lon[:]
 
-# model = PixelDiffusionConditional(train_dataset=train_ds, **model_hparam)
+loss_fn = AreaWeightedMSELoss(lat_grid, lon_grid).loss_fn  # torch.nn.functional.mse_loss
 
 model = PixelDiffusionConditional(
     train_dataset=train_ds,
@@ -73,6 +74,7 @@ create_dir(model_dir)
 
 tb_logger = pl_loggers.TensorBoardLogger(save_dir=model_dir)
 
+# pytorch lightening hyperparams
 
 pl_hparam = {
     "max_steps": 5e7,

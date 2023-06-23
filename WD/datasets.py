@@ -661,6 +661,8 @@ class Conditional_Dataset_Zarr_Iterable(IterableDataset):
         self.indices = self.indices.view(self.n_chunks, self.chunk_size)
 
         self.ordered_time = np.array(self.data.targets.time[:])[self.start:self.stop]
+        self.lat = self.data.targets.lat[:]
+        self.lon = self.data.targets.lon[:]
 
         self.shuffle_chunks = shuffle_chunks
         self.shuffle_in_chunks = shuffle_in_chunks
@@ -699,30 +701,11 @@ class Conditional_Dataset_Zarr_Iterable(IterableDataset):
                 perm_in_chunk = valid_indices + i_offset
 
             for i_in_chunk in perm_in_chunk:
-                # print(i_in_chunk)
                 input_data = chunks_input[self.get_conditioning_indices(i_in_chunk)]
                 input_data = input_data.view(len(self.conditioning_timesteps)*input_data.shape[1], *input_data.shape[2:])
                 output_data = chunks_targets[self.get_target_indices(i_in_chunk)]
                 input_data = torch.concatenate((input_data, torch.tensor(self.array_constants[:], dtype=torch.float)), dim=0)
                 yield input_data, output_data
-
-        """
-        current_chunk = -1
-        
-        for j in np.arange(iter_start, iter_stop):
-            if j >= (current_chunk+1) * self.chunk_size:
-                chunks_input = torch.tensor(self.array_inputs.oindex[np.arange(current_chunk * self.chunk_size, min((chunks_per_size + 1 + current_chunk) * self.chunk_size, self.stop), dtype=int),:,:,:], dtype=torch.float)
-                chunks_targets= torch.tensor(self.array_targets.oindex[np.arange(current_chunk * self.chunk_size, min((chunks_per_size + 1 + current_chunk) * self.chunk_size, self.stop), dtype=int),:,:,:], dtype=torch.float)
-                current_chunk = j // self.chunk_size
-
-            input_data = chunks_input[self.get_conditioning_indices(j) % self.chunk_size]
-            input_data = input_data.view(len(self.conditioning_timesteps)*input_data.shape[1], *input_data.shape[2:])
-            output_data = chunks_targets[self.get_target_indices(j) % self.chunk_size]
-
-            input_data = torch.concatenate((input_data, torch.tensor(self.array_constants[:], dtype=torch.float)), dim=0)
-            # print(input_data.shape, output_data.shape)
-            yield input_data, output_data
-        """
 
     def get_conditioning_indices(self, index):
         return self.conditioning_timesteps + index
