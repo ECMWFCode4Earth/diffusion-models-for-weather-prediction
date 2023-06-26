@@ -65,7 +65,9 @@ model_load_dir = (
 
 ds = Conditional_Dataset_Zarr_Iterable(
     "/data/compoundx/WeatherDiff/model_input/{}_test.zarr".format(ds_id),
-    "/data/compoundx/WeatherDiff/config_file/{}.yml".format(ds_id)
+    "/data/compoundx/WeatherDiff/config_file/{}.yml".format(ds_id),
+    shuffle_chunks=False,
+    shuffle_in_chunks=False
 )
 
 model_ckpt = [x for x in model_load_dir.iterdir()][0]
@@ -89,7 +91,8 @@ dl = DataLoader(
 """
 dl = DataLoader(
     ds,
-    batch_size=B
+    batch_size=B,
+    num_workers=1 # important to keep this at 1! otherwise can we guarantee that the data will arrive in the right order?
 )
 
 trainer = pl.Trainer()

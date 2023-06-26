@@ -26,7 +26,14 @@ parser.add_argument(
     "-did",
     "--dataset_id",
     type=str,
-    help="unique id for the dataset, else defaults to 738F8B",
+    help="unique id for the dataset.",
+)
+
+parser.add_argument(
+    "-lrs",
+    "--lr_schedule",
+    type=str,
+    help="LR-Schedule to be used. Must be compatible with what is written in the ConditionalPixelDiffusion class.",
 )
 
 print(f"The torch version being used is {torch.__version__}")
@@ -35,7 +42,7 @@ check_devices()
 args = parser.parse_args()
 
 ds_id = args.dataset_id
-
+lrs = args.lr_schedule
 
 print(f"Loading dataset from {ds_id}.yaml")
 
@@ -55,6 +62,8 @@ lat_grid = train_ds.data.targets.lat[:]
 lon_grid =  train_ds.data.targets.lon[:]
 loss_fn = AreaWeightedMSELoss(lat_grid, lon_grid).loss_fn  # torch.nn.functional.mse_loss
 
+# possible schedulers: None, "ReduceLROnPlateau", "StepLR", "CosineAnnealingLR", "CosineAnnealingWarmRestarts", "CosineAnnealingWarmupRestarts"
+
 model = PixelDiffusionConditional(
     train_dataset=train_ds,
     valid_dataset=val_ds,
@@ -65,7 +74,7 @@ model = PixelDiffusionConditional(
     lr=1e-4,
     num_workers=4,
     loss_fn=loss_fn,
-    lr_scheduler_name="Constant"
+    lr_scheduler_name=lrs # "CosineAnnealingWarmupRestarts"  # "ReduceLROnPlateau"
 )
 
 model_config = model.config()
@@ -93,12 +102,12 @@ assert (
 
 lr_monitor = LearningRateMonitor(logging_interval="step")
 early_stopping = EarlyStopping(
-    monitor="val_loss", mode="min", patience=10, min_delta=0
+    monitor="val_loss", mode="min", patience=30, min_delta=0
 )
 pl_args = {}
 for key, val in pl_hparam.items():
     if key == "ema_decay":
-        pl_args["callbacks"] = [EMA(val), lr_monitor]  # , early_stopping]
+        pl_args["callbacks"] = [EMA(val), lr_monitor, early_stopping]
     else:
         pl_args[key] = val
 
