@@ -74,7 +74,7 @@ model = PixelDiffusionConditional(
     lr=1e-4,
     num_workers=4,
     loss_fn=loss_fn,
-    lr_scheduler_name=lrs # "CosineAnnealingWarmupRestarts"  # "ReduceLROnPlateau"
+    lr_scheduler_name=lrs
 )
 
 model_config = model.config()

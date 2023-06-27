@@ -176,6 +176,7 @@ def write_conditional_datasets(config_path: str) -> None:
     spatial_resolution = config.data_specs.spatial_resolution
     delta_t = config.data_specs.delta_t
     constant_vars = config.data_specs.constants
+    max_chunksize = int(config.data_specs.max_chunksize * 1024**3)
 
     if out_dir is None:
         out_dir = root_dir
@@ -299,6 +300,7 @@ def write_conditional_datasets(config_path: str) -> None:
         constants=constant_dataset,
         out_dir=out_dir,
         out_filename=out_filename,
+        time_chunksize=get_max_chunksize_dataset(train_inputs, max_chunksize)
     )
     write_to_zarr(
         "test",
@@ -307,6 +309,7 @@ def write_conditional_datasets(config_path: str) -> None:
         constants=constant_dataset,
         out_dir=out_dir,
         out_filename=out_filename,
+        time_chunksize=get_max_chunksize_dataset(test_inputs, max_chunksize)
     )
     if validation_limits is not None:
         val_inputs = conditioning_dataset.sel(
@@ -331,6 +334,7 @@ def write_conditional_datasets(config_path: str) -> None:
             constants=constant_dataset,
             out_dir=out_dir,
             out_filename=out_filename,
+            time_chunksize=get_max_chunksize_dataset(val_inputs, max_chunksize)
         )
     # store the config file.
     write_config(config)
@@ -431,7 +435,7 @@ def write_to_zarr(
     constants: xr.Dataset,
     out_dir: str,
     out_filename: str,
-    time_chunksize: int=10000
+    time_chunksize: int=50000
 ) -> None:
     path = os.path.join(out_dir,"{}_{}.zarr".format(out_filename, ds_type))
     zarr.open(path, mode="w")
@@ -477,6 +481,27 @@ def expand_time_dimension(ds: xr.Dataset) -> xr.Dataset:
     ds_const = ds_const.expand_dims(time=ds.time)
 
     return xr.merge([ds_const, ds_nconst])
+
+def get_size_of_dataset(ds: xr.Dataset) -> float:
+    """Given an xarray dataset, return (an approximation of) the total memory consumption if all the data were in memory
+
+    Args:
+        ds (xr.Dataset): Dataset to be tested
+
+    Returns:
+        float: Total size of the dataset
+    """
+    total_size = 0
+    for var in ds.var():
+        total_size += ds[var].size
+    return total_size
+
+
+def get_max_chunksize_dataset(ds: xr.Dataset, maxsize: float) -> float:
+    n_timesteps = len(ds.time)
+    size = get_size_of_dataset(ds)
+
+    return min(n_timesteps, int(np.ceil(maxsize / size * n_timesteps)))
 
 
 class Conditional_Dataset(Dataset):
