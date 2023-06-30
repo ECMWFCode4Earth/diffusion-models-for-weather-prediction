@@ -151,7 +151,7 @@ def undo_scaling(
 
 def create_xr_output_variables(
     data: torch.tensor,
-    dates: torch.tensor,
+    zarr_path: str,
     config_file_path: str,
     min_max_file_path: str,
 ) -> None:
@@ -159,7 +159,7 @@ def create_xr_output_variables(
 
     Args:
         data (torch.tensor): Data to be rescaled and read into an xarray dataset.
-        dates (torch.tensor): A torch tensor of the init_times from data. Should be produced automatically by dataset or dataloader.
+        dates (str): Path to the zarr file where the dataset is saved. Is required because we need to load the time axis from there.
         config_file_path (str): Path to the used configuration file
         min_max_file_path (str): Path to the netcdf4 file in which training set maxima and minima are stored.
     """  # noqa: E501
@@ -169,6 +169,9 @@ def create_xr_output_variables(
     spatial_resolution = config.data_specs.spatial_resolution
     root_dir = config.file_structure.dir_WeatherBench
     lead_time = config.data_specs.lead_time
+    max_conditioning_time_steps = max(abs(np.array(config.data_specs.conditioning_time_step)))
+    # load time:
+    dates = xr.open_zarr(zarr_path).time.rename({"time":"init_time"}).isel({"init_time": slice(max_conditioning_time_steps, -lead_time)})
 
     # create dataset and set up coordinates:
     ds = xr.Dataset()
@@ -200,9 +203,7 @@ def create_xr_output_variables(
     ds = ds.expand_dims({"ensemble_member": data.shape[0]}).assign_coords(
         {"ensemble_member": np.arange(data.shape[0])}
     )
-    ds = ds.expand_dims({"init_time": len(dates)}).assign_coords(
-        {"init_time": pd.to_datetime(dates)}
-    )  # maybe need .numpy() here
+    ds = ds.expand_dims(init_time=dates)
 
     # get list of variables:
     assert os.path.isfile(min_max_file_path), (

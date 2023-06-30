@@ -685,7 +685,6 @@ class Conditional_Dataset_Zarr_Iterable(IterableDataset):
         self.indices[self.stop:] = False
         self.indices = self.indices.view(self.n_chunks, self.chunk_size)
 
-        self.ordered_time = np.array(self.data.targets.time[:])[self.start:self.stop]
         self.lat = self.data.targets.lat[:]
         self.lon = self.data.targets.lon[:]
 

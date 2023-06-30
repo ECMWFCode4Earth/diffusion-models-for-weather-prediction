@@ -60,7 +60,7 @@ val_ds = Conditional_Dataset_Zarr_Iterable(val_ds_path, ds_config_path, shuffle_
 # loss function: 
 lat_grid = train_ds.data.targets.lat[:]
 lon_grid =  train_ds.data.targets.lon[:]
-loss_fn = AreaWeightedMSELoss(lat_grid, lon_grid).loss_fn  # torch.nn.functional.mse_loss
+loss_fn = torch.nn.functional.mse_loss  # AreaWeightedMSELoss(lat_grid, lon_grid).loss_fn  # torch.nn.functional.mse_loss
 
 # possible schedulers: None, "ReduceLROnPlateau", "StepLR", "CosineAnnealingLR", "CosineAnnealingWarmRestarts", "CosineAnnealingWarmupRestarts"
 

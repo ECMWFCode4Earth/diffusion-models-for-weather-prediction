@@ -89,6 +89,8 @@ dl = DataLoader(
     collate_fn=lambda x: custom_collate(x, num_copies=num_copies),
 )
 """
+
+# todo: rewrite data loader
 dl = DataLoader(
     ds,
     batch_size=B,
@@ -109,11 +111,9 @@ create_dir(model_output_dir)
 
 targets = torch.tensor(ds.data.targets.data[ds.start:ds.stop], dtype=torch.float).unsqueeze(dim=0)
 
-dates = ds.time
-
 gen_xr = create_xr_output_variables(
     out,
-    dates=dates,
+    zarr_path="/data/compoundx/WeatherDiff/model_input/{}_test.zarr/targets".format(ds_id),
     config_file_path="/data/compoundx/WeatherDiff/config_file/{}.yml".format(
         ds_id
     ),
@@ -126,7 +126,7 @@ gen_xr = create_xr_output_variables(
 
 target_xr = create_xr_output_variables(
     targets,
-    dates=dates,
+    zarr_path="/data/compoundx/WeatherDiff/model_input/{}_test.zarr/targets".format(ds_id),
     config_file_path="/data/compoundx/WeatherDiff/config_file/{}.yml".format(
         ds_id
     ),
