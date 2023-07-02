@@ -102,7 +102,7 @@ assert (
 
 lr_monitor = LearningRateMonitor(logging_interval="step")
 early_stopping = EarlyStopping(
-    monitor="val_loss_new", mode="min", patience=30, min_delta=0
+    monitor="val_loss_new", mode="min", patience=50, min_delta=0
 )
 pl_args = {}
 for key, val in pl_hparam.items():
