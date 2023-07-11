@@ -524,6 +524,7 @@ class Conditional_Dataset(Dataset):
         assert self.lead_time > 0
 
         self.time = data["time"]
+        self.valid_time = self.time[self.max_abs_c_t:-self.lead_time]
         self.inputs = data["inputs"]
         self.targets = data["targets"]
         self.constants = data["constants"]
@@ -582,9 +583,8 @@ class Conditional_Dataset(Dataset):
         # trivial first dimension if it has only one element.
 
         # return the init_time of the forecast:
-        time = self.time[indices + self.max_abs_c_t]
 
-        return input, target, time
+        return input, target
 
 
 class Conditional_Dataset_Zarr(Dataset):
