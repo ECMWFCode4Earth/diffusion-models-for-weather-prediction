@@ -7,7 +7,7 @@ from dm_zoo.dff.EMA import EMA
 from dm_zoo.dff.PixelDiffusion import (
     PixelDiffusionConditional,
 )
-from WD.datasets import Conditional_Dataset_Zarr_Iterable
+from WD.datasets import Conditional_Dataset_Zarr_Iterable, Conditional_Dataset
 import torch
 from WD.utils import check_devices, create_dir, generate_uid, AreaWeightedMSELoss
 from WD.io import write_config, load_config
@@ -51,15 +51,25 @@ ds_config = load_config(ds_config_path)
 
 
 # datasets:
+"""
 train_ds_path = ds_config.file_structure.dir_model_input + f"{ds_id}_train.zarr"
 train_ds = Conditional_Dataset_Zarr_Iterable(train_ds_path, ds_config_path, shuffle_chunks=True, shuffle_in_chunks=True)
 
 val_ds_path = ds_config.file_structure.dir_model_input + f"{ds_id}_val.zarr"
 val_ds = Conditional_Dataset_Zarr_Iterable(val_ds_path, ds_config_path, shuffle_chunks=True, shuffle_in_chunks=True)
 
+"""
+train_ds_path = ds_config.file_structure.dir_model_input + f"{ds_id}_train.pt"
+train_ds = Conditional_Dataset(train_ds_path, ds_config_path)
+
+val_ds_path = ds_config.file_structure.dir_model_input + f"{ds_id}_val.pt"
+val_ds = Conditional_Dataset(val_ds_path, ds_config_path)
+
+
 # loss function: 
-lat_grid = train_ds.data.targets.lat[:]
-lon_grid =  train_ds.data.targets.lon[:]
+# lat_grid = train_ds.data.targets.lat[:]
+# lon_grid =  train_ds.data.targets.lon[:]
+
 loss_fn = torch.nn.functional.mse_loss  # AreaWeightedMSELoss(lat_grid, lon_grid).loss_fn  # torch.nn.functional.mse_loss
 
 # possible schedulers: None, "ReduceLROnPlateau", "StepLR", "CosineAnnealingLR", "CosineAnnealingWarmRestarts", "CosineAnnealingWarmupRestarts"

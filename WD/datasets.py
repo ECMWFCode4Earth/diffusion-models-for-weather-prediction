@@ -702,6 +702,7 @@ class Conditional_Dataset_Zarr_Iterable(IterableDataset):
             worker_id = worker_info.id
             chunk_start = 0 + worker_id * per_worker
             chunk_stop = min(chunk_start + per_worker, self.n_chunks)    
+            
         if self.shuffle_chunks:
             perm = np.random.permutation(np.arange(chunk_start, chunk_stop))
         else:

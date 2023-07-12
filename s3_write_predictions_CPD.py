@@ -109,7 +109,7 @@ create_dir(model_output_dir)
 # need the view to create axis for
 # different ensemble members (although only 1 here).
 
-targets = torch.tensor(ds.data.targets.data[ds.start:ds.stop], dtype=torch.float).unsqueeze(dim=0)
+targets = torch.tensor(ds.data.targets.data[ds.start+ds.lead_time:ds.stop+ds.lead_time], dtype=torch.float).unsqueeze(dim=0)
 
 gen_xr = create_xr_output_variables(
     out,
