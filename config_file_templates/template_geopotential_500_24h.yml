@@ -1,0 +1,29 @@
+data_specs:
+  conditioning_time_step: [0,-1]
+  spatial_resolution: 5.625deg
+  max_chunksize: 1.0  # maximal size per chunk in GB
+  conditioning_vars:
+    # endtal_precipitation:
+    geopotential:
+     level: [50, 250, 500, 600, 700]
+  delta_t: 6
+  lead_time: 4
+  output_vars:
+    # endtal_precipitation:
+    geopotential:
+     level: [500]
+  constants:
+    - orography
+exp_data:
+  test:
+    start: 2017-01-01 00:00:00
+    end: 2018-12-31 00:00:00
+  train:
+    start: 1979-01-02 00:00:00
+    end: 2015-12-31 00:00:00
+  val:
+    start: 2016-01-01 00:00:00
+    end: 2016-12-31 00:00:00
+file_structure:
+  dir_WeatherBench: /data/compoundx/WeatherBench/
+  dir_model_input: /data/compoundx/WeatherDiff/model_input/

@@ -93,15 +93,18 @@ dl = DataLoader(
 # todo: rewrite data loader
 dl = DataLoader(
     ds,
-    batch_size=B,
-    num_workers=1 # important to keep this at 1! otherwise can we guarantee that the data will arrive in the right order?
+    batch_size=B # important to keep this at 1! otherwise can we guarantee that the data will arrive in the right order?
 )
 
+
 trainer = pl.Trainer()
-out = trainer.predict(restored_model, dl)
+
+out = []
+for i in range(nens):
+    out.extend(trainer.predict(restored_model, dl))
 
 out = torch.cat(out, dim=0)
-out = out.view(-1, num_copies, *out.shape[1:]).transpose(0, 1)
+out = out.view(num_copies, -1, *out.shape[1:])
 
 model_output_dir = model_output_dir / model_config.ds_id
 create_dir(model_output_dir)
