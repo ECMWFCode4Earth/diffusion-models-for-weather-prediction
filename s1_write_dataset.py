@@ -13,7 +13,6 @@ parser.add_argument(
     "-cf",
     "--config_file_path",
     type=str,
-    default="/data/compoundx/WeatherDiff/config_file/template_rasp_thuerey_no_precip.yml",
     help="path under which the selected config file is stored.",
 )
 

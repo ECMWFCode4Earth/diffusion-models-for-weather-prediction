@@ -51,7 +51,7 @@ ds_config = load_config(ds_config_path)
 
 
 # datasets:
-"""
+
 train_ds_path = ds_config.file_structure.dir_model_input + f"{ds_id}_train.zarr"
 train_ds = Conditional_Dataset_Zarr_Iterable(train_ds_path, ds_config_path, shuffle_chunks=True, shuffle_in_chunks=True)
 
@@ -64,7 +64,7 @@ train_ds = Conditional_Dataset(train_ds_path, ds_config_path)
 
 val_ds_path = ds_config.file_structure.dir_model_input + f"{ds_id}_val.pt"
 val_ds = Conditional_Dataset(val_ds_path, ds_config_path)
-
+"""
 
 # loss function: 
 # lat_grid = train_ds.data.targets.lat[:]
@@ -79,7 +79,7 @@ model = PixelDiffusionConditional(
     valid_dataset=val_ds,
     generated_channels=ds_config.n_generated_channels,
     condition_channels=ds_config.n_condition_channels,
-    batch_size=64,
+    batch_size=8,
     cylindrical_padding=True,
     lr=1e-4,
     num_workers=4,
