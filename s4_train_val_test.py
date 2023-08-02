@@ -124,14 +124,14 @@ model_load_dir = (
     Path(model_config.file_structure.dir_saved_model)
     / "lightning_logs/version_0/checkpoints/"
 )
+print(model_load_dir)
+print(model_load_dir.iterdir())
 
 mse_loss_test = []
 mse_loss_val = []
 epoch_list = []
 for epoch in range(0, 120, 5):
-    model_ckpt = [
-        x for x in model_load_dir.iterdir() if f"epoch={epoch}-" in str(x)
-    ][0]
+    model_ckpt = [ x for x in model_load_dir.iterdir() if f"epoch={epoch}-" in str(x)][0]
 
     restored_model = PixelDiffusionConditional.load_from_checkpoint(
         model_ckpt,

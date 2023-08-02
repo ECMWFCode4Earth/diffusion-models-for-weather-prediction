@@ -62,10 +62,11 @@ model = PixelDiffusionConditional(
     condition_channels=ds_config.n_condition_channels,
     batch_size=64,
     cylindrical_padding=True,
-    lr=1e-4,
+    lr=5e-5,
     num_workers=4,
     loss_fn=loss_fn,
-    lr_scheduler_name="Constant"
+    lr_scheduler_name="Constant",
+    residual = False
 )
 
 model_config = model.config()
@@ -79,7 +80,7 @@ tb_logger = pl_loggers.TensorBoardLogger(save_dir=model_dir)
 # pytorch lightening hyperparams
 
 pl_hparam = {
-    "max_steps": 5e7,
+    "max_steps": 5e5,
     "ema_decay": 0.9999,
     "limit_val_batches": 10,
     "limit_test_batches": 1.0,
@@ -92,13 +93,14 @@ assert (
 )  # So that validation step is carried out
 
 lr_monitor = LearningRateMonitor(logging_interval="step")
+
 early_stopping = EarlyStopping(
     monitor="val_loss_new", mode="min", patience=10, min_delta=0
 )
 pl_args = {}
 for key, val in pl_hparam.items():
     if key == "ema_decay":
-        pl_args["callbacks"] = [EMA(val), lr_monitor]  # , early_stopping]
+        pl_args["callbacks"] = [EMA(val), lr_monitor,  early_stopping]
     else:
         pl_args[key] = val
 
