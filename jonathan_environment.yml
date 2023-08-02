@@ -1,15 +1,17 @@
 name: TORCH311
 channels:
+  - nvidia
+  - pytorch
   - defaults
   - conda-forge
 dependencies:
   - python=3.11
-  - cudatoolkit
-  - cudnn
-  - pytorch
-  - torchaudio
   - pytorch-cuda=11.7
-  - torchvision
+  # - torchaudio
+  - pytorch # =2.0.1=py3.11_cuda11.7_cudnn8.5.0_0
+  # - torchvision
+  - cudatoolkit=11.7.0
+  - cudnn
   - xarray
   - matplotlib
   - numpy
@@ -28,4 +30,5 @@ dependencies:
   - xskillscore
   - zarr
   - xesmf
+
 

@@ -4,7 +4,7 @@ from pathlib import Path
 import xarray as xr
 import numpy as np
 import uuid
-import h5py
+# import h5py
 
 from torch import tensor
 
@@ -108,11 +108,11 @@ def n_condition_channels(config):
     )
     return n_level
 
-
+"""
 def norm_area(deg=5.625):
     with h5py.File("/data/compoundx/WeatherBench/gridarea.h5", "r") as f:
         return f[f"norm_gridarea_{int(360/deg)}x{int(180/deg)}"][:]
-
+"""
 """
 class AreaWeightedMSELoss:
     def __init__(self, spatial_res):

@@ -1,7 +1,10 @@
+import os; print(os.environ["CONDA_PREFIX"])
+
 import torch
 import os
 
 from WD.utils import check_devices
+
 
 ############### Check GPU
 print(f"The torch version being used is {torch.__version__}")
