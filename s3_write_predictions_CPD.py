@@ -74,6 +74,7 @@ model_ckpt = [x for x in model_load_dir.iterdir()][0]
 
 restored_model = PixelDiffusionConditional.load_from_checkpoint(
     model_ckpt,
+    
     generated_channels=model_config.model_hparam["generated_channels"],
     condition_channels=model_config.model_hparam["condition_channels"],
     cylindrical_padding=True
