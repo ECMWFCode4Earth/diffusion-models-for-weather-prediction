@@ -655,7 +655,7 @@ class Conditional_Dataset_Zarr(Dataset):
     
 
 class Conditional_Dataset_Zarr_Iterable(IterableDataset):
-    def __init__(self, zarr_file_path, config_file_path, shuffle_chunks=False, shuffle_in_chunks=False):
+    def __init__(self, zarr_file_path, config, shuffle_chunks=False, shuffle_in_chunks=False):
         super(Conditional_Dataset_Zarr_Iterable).__init__()
         self.path = zarr_file_path
         self.data = zarr.open(self.path, mode="r")
@@ -665,7 +665,7 @@ class Conditional_Dataset_Zarr_Iterable(IterableDataset):
         self.array_constants = self.data.constants.data    
 
         # we need to load the lead time and the conditioning time steps
-        config = load_config(config_file_path)
+        config = config
         self.lead_time = config.data_specs.lead_time
         self.conditioning_timesteps = torch.tensor(
             config.data_specs.conditioning_time_step,
