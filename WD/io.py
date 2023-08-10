@@ -1,5 +1,7 @@
 from typing import List
 
+from omegaconf import DictConfig
+
 import xarray as xr
 import numpy as np
 import pandas as pd
@@ -13,7 +15,7 @@ from WD.utils import (
 )
 import os
 import yaml
-from munch import Munch
+# from munch import Munch
 
 
 def create_xr(data: np.array, var: List, data_description: str):
@@ -152,7 +154,7 @@ def undo_scaling(
 def create_xr_output_variables(
     data: torch.tensor,
     zarr_path: str,
-    config_file_path: str,
+    config: DictConfig,
     min_max_file_path: str,
 ) -> None:
     """Create an xarray dataset with dimensions [ensemble_member, init_time, lead_time, lat, lon] from a data tensor with shape (n_ensemble_members, n_init_times, n_variables, n_lat, n_lon)
@@ -164,7 +166,6 @@ def create_xr_output_variables(
         min_max_file_path (str): Path to the netcdf4 file in which training set maxima and minima are stored.
     """  # noqa: E501
     # loading config information:
-    config = load_config(config_file_path)
 
     spatial_resolution = config.data_specs.spatial_resolution
     root_dir = config.file_structure.dir_WeatherBench

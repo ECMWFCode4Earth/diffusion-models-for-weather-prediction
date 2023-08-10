@@ -38,6 +38,6 @@ fi
 module load Anaconda3/2020.07
 source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
-conda activate WD_eval
+conda activate WD_model
 
-srun python s3_write_predictions_CPD.py model_name=$ModelID nens=$EnsembleMembers
+srun python s3_write_predictions_CPD.py +model_name=$ModelID +n_ensemble_members=$EnsembleMembers
