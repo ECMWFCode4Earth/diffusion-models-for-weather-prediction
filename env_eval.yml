@@ -1,0 +1,21 @@
+name: WD_eval  # to be used for evaluation purposes: ie. plotting, computing metrics, ...
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python
+  - xarray
+  - matplotlib
+  - numpy
+  - ipykernel
+  - dask
+  - tensorboard
+  - cartopy
+  - scipy
+  - xskillscore
+  - zarr
+  - xesmf
+  - hydra-core
+  - omegaconf
+
+

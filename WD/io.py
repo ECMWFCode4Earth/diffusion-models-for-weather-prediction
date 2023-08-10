@@ -90,7 +90,7 @@ def load_config(config):
 
 
 def n_generated_channels(config):
-    ov = config.data_specs.output_vars.toDict()
+    ov = config.data_specs.output_vars
     n_level = 0
     for k, v in ov.items():
         if v is None:
@@ -109,7 +109,7 @@ def n_condition_channels(config):
     for (
         k,
         v,
-    ) in config.data_specs.conditioning_vars.toDict().items():
+    ) in config.data_specs.conditioning_vars.items():
         if v is None:
             n_level += 1
         else:

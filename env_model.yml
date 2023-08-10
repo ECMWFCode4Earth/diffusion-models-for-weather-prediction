@@ -1,0 +1,33 @@
+name: WD_model # for training or predicting with a model
+channels:
+  - nvidia
+  - pytorch
+  - defaults
+dependencies:
+  - python=3.11
+  - pytorch-cuda=11.7
+  - torchaudio
+  - pytorch # =2.0.1=py3.11_cuda11.7_cudnn8.5.0_0
+  - torchvision
+  - cudatoolkit=11.7.0
+  - cudnn
+  - xarray
+  # - numpy
+  - ipykernel
+  - pytorch-lightning
+  # - python-wget
+  # - kornia
+  - einops
+  # - netcdf4
+  - dask
+  - tensorboard
+  - matplotlib
+  # - cartopy
+  # - munch
+  # - pytest
+  # - scipy
+  # - xskillscore
+  - zarr
+  - omegaconf
+  - hydra-core
+  # - xesmf

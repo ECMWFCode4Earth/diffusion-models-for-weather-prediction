@@ -6,16 +6,19 @@ import zarr
 
 import os
 import torch
+
+from omegaconf import DictConfig
+
 from torch.utils.data import Dataset, IterableDataset
 
-from WD.io import write_config, load_config
+# from WD.io import write_config, load_config
 
 from WD.utils import (
     transform_precipitation,
     # inverse_transform_precipitation,
     generate_uid,
 )
-from munch import Munch
+# from munch import Munch
 
 from datetime import datetime
 
@@ -61,7 +64,7 @@ def open_datasets(
 
 
 def create_variables_from_pressure_levels(
-    ds: xr.Dataset, var_config: Munch
+    ds: xr.Dataset, var_config: DictConfig
 ) -> List[xr.Dataset]:
     """Given a dataset ds with multiple pressure levels and a var_config,
     that tells us which of these variables we want to use, return a list of datasets,
@@ -71,7 +74,7 @@ def create_variables_from_pressure_levels(
     Args:
         ds (xr.Dataset): An input dataset, containing a single variable at
         multiple pressure levels.
-        var_config (Munch): A configuration object which contains an attribute "levels"
+        var_config (DictConfig): A configuration object which contains an attribute "levels"
         that specifies a list of pressure levels we want to use.
 
     Returns:
@@ -137,7 +140,7 @@ def open_constant_datasets(
         )  # if no constant vars were selected, return an empty xarray.
 
 
-def write_conditional_datasets(config_path: str) -> None:
+def write_conditional_datasets(config: DictConfig) -> None:
     """Save a preprocessed version of the WeatherBench dataset into a single file.
 
     Args:
@@ -156,36 +159,34 @@ def write_conditional_datasets(config_path: str) -> None:
     """  # noqa: E501
 
     print("Load config file.")
-    config = load_config(config_path)
-    from_train = config.exp_data.train.start
-    to_train = config.exp_data.train.end
+    from_train = config.template.exp_data.train.start
+    to_train = config.template.exp_data.train.end
 
-    from_val = config.exp_data.val.start
-    to_val = config.exp_data.val.end
+    from_val = config.template.exp_data.val.start
+    to_val = config.template.exp_data.val.end
 
-    from_test = config.exp_data.test.start
-    to_test = config.exp_data.test.end
+    from_test = config.template.exp_data.test.start
+    to_test = config.template.exp_data.test.end
 
-    root_dir = config.file_structure.dir_WeatherBench
-    out_dir = config.file_structure.dir_model_input
+    root_dir = config.template.file_structure.dir_WeatherBench
+    out_dir = config.template.file_structure.dir_model_input
     train_limits = (from_train, to_train)
     validation_limits = (from_val, to_val)
     test_limits = (from_test, to_test)
-    conditioning_variables = config.data_specs.conditioning_vars.toDict()
-    output_variables = config.data_specs.output_vars.toDict()
-    spatial_resolution = config.data_specs.spatial_resolution
-    delta_t = config.data_specs.delta_t
-    constant_vars = config.data_specs.constants
-    max_chunksize = int(config.data_specs.max_chunksize * 1024**3)
+    conditioning_variables = config.template.data_specs.conditioning_vars
+    output_variables = config.template.data_specs.output_vars
+    spatial_resolution = config.template.data_specs.spatial_resolution
+    delta_t = config.template.data_specs.delta_t
+    constant_vars = config.template.data_specs.constants
+    max_chunksize = int(config.ds_format.max_chunksize * 1024**3)
+
+    out_filename = config.template.template_name
 
     if out_dir is None:
         out_dir = root_dir
 
     if out_dir is None:
         out_dir = root_dir
-
-    config.ds_id = generate_uid()
-    out_filename = f"{config.ds_id}"
 
     print("Open datasets.")
     # load output variables
@@ -336,8 +337,6 @@ def write_conditional_datasets(config_path: str) -> None:
             out_filename=out_filename,
             time_chunksize=get_max_chunksize_dataset(val_inputs, max_chunksize)
         )
-    # store the config file.
-    write_config(config)
 
 
 def normalize_dataset(

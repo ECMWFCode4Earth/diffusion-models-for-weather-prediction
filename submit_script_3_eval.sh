@@ -12,17 +12,15 @@
 helpFunction()
 {
    echo ""
-   echo "Usage: $0 -d DatasetID -m ModelID -e EnsembleMembers"
-   echo -e "\t-d The ID of the dataset the model was trained on."
-   echo -e "\t-m The ID of the model the predictions were created with."
+   echo "Usage: $0 -m modelName -e NEnsembleMembers"
+   echo -e "\t-m The name of the model the predictions should be created with."
    echo -e "\t-e The number of ensemble members to be created."
    exit 1 # Exit script after printing help
 }
 
-while getopts "d:m:e:" opt
+while getopts "m:e:" opt
 do
    case "$opt" in
-      d ) DatasetID="$OPTARG" ;;
       m ) ModelID="$OPTARG" ;;
       e ) EnsembleMembers="$OPTARG" ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
@@ -30,7 +28,7 @@ do
 done
 
 # Print helpFunction in case parameters are empty
-if [ -z "$DatasetID" ] || [ -z "$ModelID" ] || [ -z "$EnsembleMembers" ]
+if [ -z "$ModelID" ] || [ -z "$EnsembleMembers" ]
 then
    echo "Some or all of the parameters are empty.";
    helpFunction
@@ -40,6 +38,6 @@ fi
 module load Anaconda3/2020.07
 source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
-conda activate TORCH311
+conda activate WD_eval
 
-srun python s3_write_predictions_CPD.py -did $DatasetID -mid $ModelID -nens $EnsembleMembers
+srun python s3_write_predictions_CPD.py model_name=$ModelID nens=$EnsembleMembers
