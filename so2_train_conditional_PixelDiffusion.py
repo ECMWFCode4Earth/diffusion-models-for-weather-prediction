@@ -71,7 +71,7 @@ model = PixelDiffusionConditional(
 model_config = model.config()
 
 model_id = generate_uid()
-model_dir = f"/data/compoundx/WeatherDiff/saved_model/{ds_id}/{model_id}/"
+model_dir = f"/data/compoundx/WeatherDiff/saved_model/vae/{ds_id}/{model_id}/"
 create_dir(model_dir)
 
 tb_logger = pl_loggers.TensorBoardLogger(save_dir=model_dir)
