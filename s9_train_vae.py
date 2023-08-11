@@ -1,10 +1,16 @@
 import pytorch_lightning as pl
 from pytorch_lightning import loggers as pl_loggers
 from dm_zoo.dff.EMA import EMA
+
+import os
+import hydra
+from omegaconf import DictConfig, OmegaConf
+
 from WD.io import load_config
 from WD.datasets import Conditional_Dataset_Zarr_Iterable
-from WD.utils import create_dir, generate_uid
-from latent.vae.train import VAE
+from WD.utils import create_dir, generate_uid, check_devices
+from latent.vae.vae_lightning_module import VAE
+import torch
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.callbacks.early_stopping import (
     EarlyStopping,
@@ -12,75 +18,60 @@ from pytorch_lightning.callbacks.early_stopping import (
 
 
 
-### Required args
+@hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/training", config_name="config")
+def main(config: DictConfig) -> None:
+    hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
+    exp_name = hydra_cfg['runtime']['choices']['experiment']
+    dir_name = hydra_cfg['runtime']['output_dir']  # the directory the hydra log is written to.
+    dir_name = os.path.basename(os.path.normpath(dir_name))  # we only need the last part
 
-ds_id = "291F23" # To load the dataset
+    ds_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/{config.experiment.data.template}/.hydra/config.yaml")
 
-#### VAE hyperparameter
-inp_shape = (11, 32, 64) # 11 n_generated channel 32x64 from spatial resolution 
-dim = None # if in_channel needs to be changed (from 11 to 32, 64, etc)
-beta = 1.0 #betaVAE
-batch_size = 128 # batch_size
-lr = 1e-3 # lr
-lr_scheduler_name =  "ReduceLROnPlateau" # 
-num_workers = 1
-channel_mult = [1,2]
+    print(f"The torch version being used is {torch.__version__}")
+    check_devices()
 
-## pytorch hyperparameters
+    # load config
+    print(f"Loading dataset {config.experiment.data.template}")
 
-pl_hparam = {
-    "max_steps": 5e7,
-    "ema_decay": 0.9999,
-    "limit_val_batches": 10,
-    "limit_test_batches": 1.0,
-    "accelerator": "cpu",
-    "devices": 1,
-} 
+    train_ds_path = config.paths.data_dir + f"{config.experiment.data.template}_train.zarr"
+    train_ds = Conditional_Dataset_Zarr_Iterable(train_ds_path, ds_config.template, shuffle_chunks=config.experiment.data.train_shuffle_chunks, 
+                                                shuffle_in_chunks=config.experiment.data.train_shuffle_in_chunks)
 
-ds_config_path = f"/data/compoundx/WeatherDiff/config_file/{ds_id}.yml"
-ds_config = load_config(ds_config_path)
+    val_ds_path = config.paths.data_dir + f"{config.experiment.data.template}_val.zarr"
+    val_ds = Conditional_Dataset_Zarr_Iterable(val_ds_path, ds_config.template, shuffle_chunks=config.experiment.data.val_shuffle_chunks, shuffle_in_chunks=config.experiment.data.val_shuffle_in_chunks)
 
-print(f"Loading dataset from {ds_id}.yaml")
-
-# datasets:
-train_ds_path = ds_config.file_structure.dir_model_input + f"{ds_id}_train.zarr"
-train_ds = Conditional_Dataset_Zarr_Iterable(train_ds_path, ds_config_path, shuffle_chunks=True, shuffle_in_chunks=True)
-
-val_ds_path = ds_config.file_structure.dir_model_input + f"{ds_id}_val.zarr"
-val_ds = Conditional_Dataset_Zarr_Iterable(val_ds_path, ds_config_path, shuffle_chunks=True, shuffle_in_chunks=True)
-
-model = VAE(inp_shape = inp_shape, train_dataset=train_ds, valid_dataset=val_ds, dim=dim, channel_mult = channel_mult, 
-        batch_size = batch_size,
-        lr = lr,
-        lr_scheduler_name=lr_scheduler_name,
-        num_workers = num_workers,
-        beta = beta)
-
-model_id = generate_uid()
-model_dir = f"/data/compoundx/WeatherDiff/saved_model/vae/{ds_id}/{model_id}/"
-create_dir(model_dir)
-tb_logger = pl_loggers.TensorBoardLogger(save_dir=model_dir)
-
-
-
-assert (
-    pl_hparam["limit_val_batches"] > 0
-)  # So that validation step is carried out
-
-lr_monitor = LearningRateMonitor(logging_interval="step")
-early_stopping = EarlyStopping(
-    monitor="val_loss", mode="min", patience=10, min_delta=0
-)
-pl_args = {}
-for key, val in pl_hparam.items():
-    if key == "ema_decay":
-        pl_args["callbacks"] = [EMA(val), lr_monitor]  # , early_stopping]
+    if config.experiment.vae.type == "input":
+        n_channels = train_ds.array_inputs.shape[1] * len(train_ds.conditioning_timesteps) + train_ds.array_constants.shape[0]
     else:
-        pl_args[key] = val
+        n_channels = train_ds.array_targets.shape[1]
+    in_shape = (n_channels, *train_ds.array_targets.shape[:-2])
 
-trainer = pl.Trainer(
-    logger=tb_logger,
-    **pl_args,
-)
+    model = VAE(inp_shape = in_shape, train_dataset=train_ds, valid_dataset=val_ds, 
+                dim=config.experiment.vae.dim, 
+                channel_mult = config.experiment.vae.channel_mult, 
+                batch_size = config.experiment.vae.batch_size, 
+                lr = config.experiment.vae.lr, 
+                lr_scheduler_name=config.experiment.vae.lr_scheduler_name, 
+                num_workers = config.experiment.vae.num_workers, 
+                beta = config.experiment.vae.beta)
 
-trainer.fit(model)
+    model_dir = f"{config.paths.save_model_dir}/{config.experiment.data.template}/{exp_name}/{dir_name}/"
+    create_dir(model_dir)
+    tb_logger = pl_loggers.TensorBoardLogger(save_dir=model_dir)
+
+    lr_monitor = LearningRateMonitor(logging_interval="step")
+
+    trainer = pl.Trainer(
+        max_steps=config.experiment.training.max_steps,
+        limit_val_batches=config.experiment.training.limit_val_batches,
+        accelerator=config.experiment.training.accelerator,
+        devices=config.experiment.training.devices,
+        callbacks=[EMA(config.experiment.training.ema_decay), lr_monitor], #, early_stopping],
+        logger=tb_logger
+    )
+
+    trainer.fit(model)
+
+
+if __name__ == '__main__':
+    main()

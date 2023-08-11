@@ -34,15 +34,13 @@ def main(config: DictConfig) -> None:
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     dir_name = hydra_cfg['runtime']['output_dir']  # the directory the hydra log is written to.
     dir_name = os.path.basename(os.path.normpath(dir_name))  # we only need the last part
-    print(dir_name)
+    exp_name = hydra_cfg['runtime']['choices']['experiment']
 
     print(f"The torch version being used is {torch.__version__}")
     check_devices()
 
     # load config
     print(f"Loading dataset {config.experiment.data.template}")
-
-
     # ds_config_path = os.path.join(conf.base_path, f"{conf.template}.yml")
     # ds_config = load_config(ds_config_path)
     ds_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/{config.experiment.data.template}/.hydra/config.yaml")
@@ -72,7 +70,7 @@ def main(config: DictConfig) -> None:
         raise NotImplementedError("This sampler has not been implemented.")    
 
     # create unique model id and create directory to save model in:
-    model_dir = f"{config.paths.save_model_dir}/{config.experiment.data.template}/{dir_name}/"
+    model_dir = f"{config.paths.save_model_dir}/{config.experiment.data.template}/{exp_name}/{dir_name}/"
     create_dir(model_dir)
 
     # set up logger:

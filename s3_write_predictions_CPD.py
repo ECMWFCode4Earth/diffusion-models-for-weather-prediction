@@ -29,7 +29,7 @@ def main(config: DictConfig) -> None:
     nens = config.n_ensemble_members  # we have to pass this to the bash file every time!
 
     ds_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/{config.data.template}/.hydra/config.yaml")
-    ml_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/training/{config.data.template}/{config.model_name}/.hydra/config.yaml")
+    ml_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/training/{config.data.template}/{config.data.template}/{config.experiment}/.hydra/config.yaml")
 
     model_output_dir = config.paths.inference_dir
 
@@ -64,7 +64,7 @@ def main(config: DictConfig) -> None:
     out = torch.cat(out, dim=0)
     out = out.view(nens, -1, *out.shape[1:])
 
-    model_output_dir = os.path.join(model_output_dir, config.data.template, model_name, dir_name)
+    model_output_dir = os.path.join(model_output_dir, config.data.template, config.experiment, model_name, dir_name)
     create_dir(model_output_dir)
 
     # need the view to create axis for
