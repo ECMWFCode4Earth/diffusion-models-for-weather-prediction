@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=RunCond
-#SBATCH --time=2-23:45:00
+#SBATCH --time=1-20:45:00
 #SBATCH -G nvidia-a100:1
 #SBATCH --mem-per-cpu=16G
 #SBATCH --cpus-per-task=4
@@ -18,26 +18,10 @@ helpFunction()
    exit 1 # Exit script after printing help
 }
 
-while getopts "d:" opt
-do
-   case "$opt" in
-      d ) DatasetID="$OPTARG" ;;
-      ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
-   esac
-done
-
-# Print helpFunction in case parameters are empty
-if [ -z "$DatasetID" ]
-then
-   echo "Some or all of the parameters are empty.";
-   helpFunction
-fi
-# end reading command line arguments
-
 module load Anaconda3/2020.07
 source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
-conda activate TORCH311
+conda activate WD_model
 
-srun python s2_train_conditional_PixelDiffusion.py  -did $DatasetID
+srun python s2_train_conditional_pixel_diffusion.py
 

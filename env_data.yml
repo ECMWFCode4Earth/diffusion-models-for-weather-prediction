@@ -1,0 +1,14 @@
+name: WD_data # for creating datasets.
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - ipykernel # jupyter notebooks  
+  - xarray  # data processing
+  - netcdf4 
+  - dask
+  - zarr
+  - pytorch  # to be able to write to .pt files if wanted
+  - omegaconf  # config
+  - hydra-core
+  - matplotlib  # for simple diagnostic plotting stuff

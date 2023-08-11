@@ -1,5 +1,7 @@
 from typing import List
 
+from omegaconf import DictConfig
+
 import xarray as xr
 import numpy as np
 import pandas as pd
@@ -13,7 +15,7 @@ from WD.utils import (
 )
 import os
 import yaml
-from munch import Munch
+# from munch import Munch
 
 
 def create_xr(data: np.array, var: List, data_description: str):
@@ -90,7 +92,7 @@ def load_config(config):
 
 
 def n_generated_channels(config):
-    ov = config.data_specs.output_vars.toDict()
+    ov = config.data_specs.output_vars
     n_level = 0
     for k, v in ov.items():
         if v is None:
@@ -109,7 +111,7 @@ def n_condition_channels(config):
     for (
         k,
         v,
-    ) in config.data_specs.conditioning_vars.toDict().items():
+    ) in config.data_specs.conditioning_vars.items():
         if v is None:
             n_level += 1
         else:
@@ -152,7 +154,7 @@ def undo_scaling(
 def create_xr_output_variables(
     data: torch.tensor,
     zarr_path: str,
-    config_file_path: str,
+    config: DictConfig,
     min_max_file_path: str,
 ) -> None:
     """Create an xarray dataset with dimensions [ensemble_member, init_time, lead_time, lat, lon] from a data tensor with shape (n_ensemble_members, n_init_times, n_variables, n_lat, n_lon)
@@ -164,12 +166,11 @@ def create_xr_output_variables(
         min_max_file_path (str): Path to the netcdf4 file in which training set maxima and minima are stored.
     """  # noqa: E501
     # loading config information:
-    config = load_config(config_file_path)
 
-    spatial_resolution = config.data_specs.spatial_resolution
-    root_dir = config.file_structure.dir_WeatherBench
-    lead_time = config.data_specs.lead_time
-    max_conditioning_time_steps = max(abs(np.array(config.data_specs.conditioning_time_step)))
+    spatial_resolution = config.template.data_specs.spatial_resolution
+    root_dir = config.paths.data_input_dir
+    lead_time = config.template.data_specs.lead_time
+    max_conditioning_time_steps = max(abs(np.array(config.template.data_specs.conditioning_time_step)))
     # load time:
     dates = xr.open_zarr(zarr_path).time.rename({"time":"init_time"}).isel({"init_time": slice(max_conditioning_time_steps, -lead_time)})
 

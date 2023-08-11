@@ -1,24 +1,12 @@
-import argparse
-import os
+import hydra
+from omegaconf import DictConfig
 
 from WD.datasets import write_conditional_datasets
+from WD.utils import generate_uid
 
-parser = argparse.ArgumentParser(
-    prog="WeatherDiffCondVanilla",
-    description="Vanilla Conditional Diffusion Model",
-    epilog="Arg parser for vanilla conditional diffusion model",
-)
+@hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/data", config_name="config")
+def main(conf: DictConfig) -> None:
+    write_conditional_datasets(conf)
 
-parser.add_argument(
-    "-cf",
-    "--config_file_path",
-    type=str,
-    help="path under which the selected config file is stored.",
-)
-
-args = parser.parse_args()
-
-print(args.config_file_path)
-assert os.path.isfile(args.config_file_path)
-
-write_conditional_datasets(args.config_file_path)
+if __name__ == '__main__':
+    main()
