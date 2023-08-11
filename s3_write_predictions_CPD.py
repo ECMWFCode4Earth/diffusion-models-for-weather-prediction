@@ -21,19 +21,22 @@ import pytorch_lightning as pl
 
 @hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/inference", config_name="config")
 def main(config: DictConfig) -> None:
+    hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
+    dir_name = hydra_cfg['runtime']['output_dir']  # the directory the hydra log is written to.
+    dir_name = os.path.basename(os.path.normpath(dir_name))  # we only need the last part
 
-    ds_id = config.data.template
     model_name = config.model_name  # we have to pass this to the bash file every time! (should contain a string).
     nens = config.n_ensemble_members  # we have to pass this to the bash file every time!
 
-    ds_config = OmegaConf.load(f"/data/compoundx/WeatherDiff/hydra_configs/{config.data.template}/.hydra/config.yaml")
-    ml_config = OmegaConf.load(f"/data/compoundx/WeatherDiff/hydra_configs/train/{config.data.template}/{config.model_name}/.hydra/config.yaml")
+    ds_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/{config.data.template}/.hydra/config.yaml")
+    ml_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/training/{config.data.template}/{config.model_name}/.hydra/config.yaml")
 
-    model_output_dir = config.inference_dir
+    model_output_dir = config.paths.inference_dir
 
-    model_load_dir = Path(f"/data/compoundx/WeatherDiff/saved_model/{config.data.template}/{config.model_name}/lightning_logs/version_0/checkpoints/")
+    model_load_dir = Path(f"{config.paths.save_model_dir}/{config.data.template}/{config.model_name}/lightning_logs/version_0/checkpoints/")
 
-    test_ds_path = ds_config.template.file_structure.dir_model_input + f"{config.data.template}_test.zarr"
+    test_ds_path = f"{config.paths.data_dir}{config.data.template}_test.zarr"
+
     ds = Conditional_Dataset_Zarr_Iterable(test_ds_path, ds_config.template, shuffle_chunks=config.shuffle_chunks, 
                                                 shuffle_in_chunks=config.shuffle_in_chunks)
     
@@ -61,7 +64,7 @@ def main(config: DictConfig) -> None:
     out = torch.cat(out, dim=0)
     out = out.view(nens, -1, *out.shape[1:])
 
-    model_output_dir = os.path.join(model_output_dir, config.data.template, model_name)
+    model_output_dir = os.path.join(model_output_dir, config.data.template, model_name, dir_name)
     create_dir(model_output_dir)
 
     # need the view to create axis for
@@ -71,16 +74,16 @@ def main(config: DictConfig) -> None:
 
     gen_xr = create_xr_output_variables(
         out,
-        zarr_path="/data/compoundx/WeatherDiff/model_input/{}_test.zarr/targets".format(config.data.template),
-        config=ds_config.template,
-        min_max_file_path="/data/compoundx/WeatherDiff/model_input/{}_output_min_max.nc".format(config.data.template)
+        zarr_path=f"{config.paths.data_dir}/{config.data.template}_test.zarr/targets",
+        config=ds_config,
+        min_max_file_path=f"{config.paths.data_dir}/{config.data.template}_output_min_max.nc"
     )
 
     target_xr = create_xr_output_variables(
         targets,
-        zarr_path="/data/compoundx/WeatherDiff/model_input/{}_test.zarr/targets".format(config.data.template),
-        config=ds_config.template,
-        min_max_file_path="/data/compoundx/WeatherDiff/model_input/{}_output_min_max.nc".format(config.data.template)
+        zarr_path=f"{config.paths.data_dir}/{config.data.template}_test.zarr/targets",
+        config=ds_config,
+        min_max_file_path=f"{config.paths.data_dir}/{config.data.template}_output_min_max.nc"
     )
 
     gen_dir = os.path.join(model_output_dir, "gen.nc")
@@ -94,3 +97,4 @@ def main(config: DictConfig) -> None:
 
 if __name__ == '__main__':
     main()
+

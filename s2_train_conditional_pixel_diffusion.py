@@ -29,41 +29,8 @@ from pytorch_lightning.callbacks.early_stopping import (
 )
 
 
-# model_config = model.config()
-
-# pytorch lightening hyperparams
-
-"""
-pl_hparam = {
-    "max_steps": 5e7,
-    "ema_decay": 0.9999,
-    "limit_val_batches": 10,
-    "accelerator": "cuda",
-    "devices": -1,
-}
-"""
-
-"""
-
-"""
-"""
-model_config["pl_hparam"] = pl_hparam
-model_config["ds_id"] = ds_id
-model_config["model_id"] = model_id
-model_config["file_structure"] = {
-    "dir_model_input": ds_config.file_structure.dir_model_input,
-    "dir_saved_model": model_dir,
-    "dir_config_file": ds_config_path,
-}
-
-write_config(model_config)
-"""
-
-# 
-
 @hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/training", config_name="config")
 def main(config: DictConfig) -> None:
-
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     dir_name = hydra_cfg['runtime']['output_dir']  # the directory the hydra log is written to.
     dir_name = os.path.basename(os.path.normpath(dir_name))  # we only need the last part
@@ -73,39 +40,39 @@ def main(config: DictConfig) -> None:
     check_devices()
 
     # load config
-    print(f"Loading dataset {config.data.template}")
+    print(f"Loading dataset {config.experiment.data.template}")
 
 
     # ds_config_path = os.path.join(conf.base_path, f"{conf.template}.yml")
     # ds_config = load_config(ds_config_path)
-    ds_config = OmegaConf.load(f"/data/compoundx/WeatherDiff/hydra_configs/{config.data.template}/.hydra/config.yaml")
+    ds_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/{config.experiment.data.template}/.hydra/config.yaml")
 
     # set up datasets:
 
-    train_ds_path = ds_config.template.file_structure.dir_model_input + f"{config.data.template}_train.zarr"
-    train_ds = Conditional_Dataset_Zarr_Iterable(train_ds_path, ds_config.template, shuffle_chunks=config.data.train_shuffle_chunks, 
-                                                shuffle_in_chunks=config.data.train_shuffle_in_chunks)
+    train_ds_path = config.paths.data_dir + f"{config.experiment.data.template}_train.zarr"
+    train_ds = Conditional_Dataset_Zarr_Iterable(train_ds_path, ds_config.template, shuffle_chunks=config.experiment.data.train_shuffle_chunks, 
+                                                shuffle_in_chunks=config.experiment.data.train_shuffle_in_chunks)
 
-    val_ds_path = ds_config.template.file_structure.dir_model_input + f"{config.data.template}_val.zarr"
-    val_ds = Conditional_Dataset_Zarr_Iterable(val_ds_path, ds_config.template, shuffle_chunks=config.data.val_shuffle_chunks, shuffle_in_chunks=config.data.val_shuffle_in_chunks)
+    val_ds_path = config.paths.data_dir + f"{config.experiment.data.template}_val.zarr"
+    val_ds = Conditional_Dataset_Zarr_Iterable(val_ds_path, ds_config.template, shuffle_chunks=config.experiment.data.val_shuffle_chunks, shuffle_in_chunks=config.experiment.data.val_shuffle_in_chunks)
 
     # select loss_fn:
-    if config.setup.loss_fn_name == "MSE_Loss":
+    if config.experiment.setup.loss_fn_name == "MSE_Loss":
         loss_fn = torch.nn.functional.mse_loss
-    elif config.setup.loss_fn_name == "AreaWeighted_MSE_Loss":
+    elif config.experiment.setup.loss_fn_name == "AreaWeighted_MSE_Loss":
         lat_grid = train_ds.data.targets.lat[:]
         lon_grid =  train_ds.data.targets.lon[:]
         AreaWeightedMSELoss(lat_grid, lon_grid).loss_fn
     else:
         raise NotImplementedError("Invalid loss function.")
 
-    if config.setup.sampler_name == "DDPM":  # this is the default case
+    if config.experiment.setup.sampler_name == "DDPM":  # this is the default case
         sampler = None
     else:
         raise NotImplementedError("This sampler has not been implemented.")    
 
     # create unique model id and create directory to save model in:
-    model_dir = f"/data/compoundx/WeatherDiff/saved_model/{config.data.template}/{dir_name}/"
+    model_dir = f"{config.paths.save_model_dir}/{config.experiment.data.template}/{dir_name}/"
     create_dir(model_dir)
 
     # set up logger:
@@ -118,7 +85,7 @@ def main(config: DictConfig) -> None:
     print("generated channels: {} conditioning channels: {}".format(generated_channels, conditioning_channels))
 
     model = PixelDiffusionConditional(
-        config.pixel_diffusion,
+        config.experiment.pixel_diffusion,
         generated_channels=generated_channels,
         conditioning_channels=conditioning_channels,
         loss_fn=loss_fn,
@@ -130,15 +97,15 @@ def main(config: DictConfig) -> None:
     lr_monitor = LearningRateMonitor(logging_interval="step")
 
     early_stopping = EarlyStopping(
-        monitor="val_loss_new", mode="min", patience=config.training.patience
+        monitor="val_loss_new", mode="min", patience=config.experiment.training.patience
     )
 
     trainer = pl.Trainer(
-        max_steps=config.training.max_steps,
-        limit_val_batches=config.training.limit_val_batches,
-        accelerator=config.training.accelerator,
-        devices=config.training.devices,
-        callbacks=[EMA(config.training.ema_decay), lr_monitor, early_stopping],
+        max_steps=config.experiment.training.max_steps,
+        limit_val_batches=config.experiment.training.limit_val_batches,
+        accelerator=config.experiment.training.accelerator,
+        devices=config.experiment.training.devices,
+        callbacks=[EMA(config.experiment.training.ema_decay), lr_monitor, early_stopping],
         logger=tb_logger
     )
 

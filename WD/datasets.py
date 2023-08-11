@@ -161,15 +161,14 @@ def write_conditional_datasets(config: DictConfig) -> None:
     print("Load config file.")
     from_train = config.template.exp_data.train.start
     to_train = config.template.exp_data.train.end
-
     from_val = config.template.exp_data.val.start
     to_val = config.template.exp_data.val.end
 
     from_test = config.template.exp_data.test.start
     to_test = config.template.exp_data.test.end
 
-    root_dir = config.template.file_structure.dir_WeatherBench
-    out_dir = config.template.file_structure.dir_model_input
+    root_dir = config.paths.data_input_dir
+    out_dir = config.paths.data_output_dir
     train_limits = (from_train, to_train)
     validation_limits = (from_val, to_val)
     test_limits = (from_test, to_test)

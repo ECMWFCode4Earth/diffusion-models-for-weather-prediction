@@ -167,10 +167,10 @@ def create_xr_output_variables(
     """  # noqa: E501
     # loading config information:
 
-    spatial_resolution = config.data_specs.spatial_resolution
-    root_dir = config.file_structure.dir_WeatherBench
-    lead_time = config.data_specs.lead_time
-    max_conditioning_time_steps = max(abs(np.array(config.data_specs.conditioning_time_step)))
+    spatial_resolution = config.template.data_specs.spatial_resolution
+    root_dir = config.paths.data_input_dir
+    lead_time = config.template.data_specs.lead_time
+    max_conditioning_time_steps = max(abs(np.array(config.template.data_specs.conditioning_time_step)))
     # load time:
     dates = xr.open_zarr(zarr_path).time.rename({"time":"init_time"}).isel({"init_time": slice(max_conditioning_time_steps, -lead_time)})
 
