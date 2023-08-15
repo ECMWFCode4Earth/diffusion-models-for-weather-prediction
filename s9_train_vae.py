@@ -16,8 +16,6 @@ from pytorch_lightning.callbacks.early_stopping import (
     EarlyStopping,
 )
 
-
-
 @hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/training", config_name="config")
 def main(config: DictConfig) -> None:
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
@@ -53,7 +51,8 @@ def main(config: DictConfig) -> None:
                 lr = config.experiment.vae.lr, 
                 lr_scheduler_name=config.experiment.vae.lr_scheduler_name, 
                 num_workers = config.experiment.vae.num_workers, 
-                beta = config.experiment.vae.beta)
+                beta = config.experiment.vae.beta,
+                data_type = config.experiment.vae.type)
 
     model_dir = f"{config.paths.save_model_dir}/{config.experiment.data.template}/{exp_name}/{dir_name}/"
     create_dir(model_dir)

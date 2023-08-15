@@ -131,3 +131,5 @@ class ConvVAE(BaseVAE):
     
     def generate(self, x):
         return self.forward(x)[0]
+    
+    

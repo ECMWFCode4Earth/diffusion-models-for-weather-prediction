@@ -7,6 +7,7 @@ from .vae import ConvVAE
 class VAE(pl.LightningModule):
     def __init__(self,
         inp_shape,
+        data_type = "input",
         train_dataset = None,
         valid_dataset = None,
         channel_mult = [1,2], 
@@ -16,7 +17,7 @@ class VAE(pl.LightningModule):
         lr_scheduler_name="ReduceLROnPlateau",
         num_workers = 1,
         beta = 1.0
-    ):
+        ):
         super().__init__()
 
         self.beta = beta
@@ -32,7 +33,7 @@ class VAE(pl.LightningModule):
 
         self.lr = lr
         self.batch_size = batch_size
-
+        self.data_type = data_type
         self.model = ConvVAE(
             inp_shape=inp_shape,
             channel_mult=channel_mult,
@@ -45,7 +46,10 @@ class VAE(pl.LightningModule):
         return self.model(x)
     
     def training_step(self, batch, batch_idx):
-        x, _ = batch
+        if self.data_type == "input":
+            x, _ = batch
+        elif self.data_type == "output":
+            _, x = batch
         r, x, mu, log_var = self.model(x)
 
         loss = self.model.loss_function(r, x, mu, log_var, self.beta, self.train_kld_weight)
@@ -58,7 +62,11 @@ class VAE(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         # standard loss:
-        x, _ = batch
+        if self.data_type == "input":
+            x, _ = batch
+        elif self.data_type == "output":
+            _, x = batch
+        
         r, x, mu, log_var = self.model(x)
 
         loss = self.model.loss_function(r, x, mu, log_var, self.beta, self.val_kld_weight)
