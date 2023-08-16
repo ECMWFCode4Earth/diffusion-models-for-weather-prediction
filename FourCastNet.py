@@ -48,7 +48,7 @@ class AFNO2D(nn.Module):
 
         self.hidden_size = hidden_size
         self.sparsity_threshold = sparsity_threshold
-        self.num_blocks = num_blocks
+        self.num_blocks = num_blocks  # like transformer heads
         self.block_size = self.hidden_size // self.num_blocks
         self.hard_thresholding_fraction = hard_thresholding_fraction
         self.hidden_size_factor = hidden_size_factor
@@ -105,7 +105,7 @@ class AFNO2D(nn.Module):
         )
 
         x = torch.stack([o2_real, o2_imag], dim=-1)
-        x = F.softshrink(x, lambd=self.sparsity_threshold)
+        x = F.softshrink(x, lambd=self.sparsity_threshold)  # sparsity function described in paper
         x = torch.view_as_complex(x)
         x = x.reshape(B, H, W // 2 + 1, C)  # undo the shaping of heads
         x = torch.fft.irfft2(x, s=(H, W), dim=(1,2), norm="ortho")
@@ -117,21 +117,21 @@ class AFNO2D(nn.Module):
 class Block(nn.Module):
     def __init__(
             self,
-            dim,
-            mlp_ratio=4.,
+            dim,  # patch embedding dimension
+            mlp_ratio=4.,  # how far spread out the mlp is
             drop=0.,
             drop_path=0.,
             act_layer=nn.GELU,
             norm_layer=nn.LayerNorm,
             double_skip=True,
-            num_blocks=8,
+            num_blocks=8, # like transformer heads
             sparsity_threshold=0.01,
             hard_thresholding_fraction=1.0
         ):
         super().__init__()
         self.norm1 = norm_layer(dim)
         self.filter = AFNO2D(dim, num_blocks, sparsity_threshold, hard_thresholding_fraction) 
-        self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
+        self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity() # with a given probability, drop this network path
         #self.drop_path = nn.Identity()
         self.norm2 = norm_layer(dim)
         mlp_hidden_dim = int(dim * mlp_ratio)
@@ -178,9 +178,9 @@ class AFNONet(nn.Module):
             params,
             img_size=(720, 1440),
             patch_size=(16, 16),
-            in_chans=2,
+            in_chans=2,  # why is this only two? -> probably gets overwritten later
             out_chans=2,
-            embed_dim=768,
+            embed_dim=768, # 3 x 256 - maybe leftover from RGB images
             depth=12,
             mlp_ratio=4.,
             drop_rate=0.,
@@ -217,7 +217,7 @@ class AFNONet(nn.Module):
 
         self.norm = norm_layer(embed_dim)
 
-        self.head = nn.Linear(embed_dim, self.out_chans*self.patch_size[0]*self.patch_size[1], bias=False)
+        self.head = nn.Linear(embed_dim, self.out_chans*self.patch_size[0]*self.patch_size[1], bias=False)  # decoding layer
 
         trunc_normal_(self.pos_embed, std=.02)
         self.apply(self._init_weights)
@@ -238,21 +238,21 @@ class AFNONet(nn.Module):
     def forward_features(self, x):
         B = x.shape[0]
         x = self.patch_embed(x)
-        x = x + self.pos_embed
-        x = self.pos_drop(x)
+        x = x + self.pos_embed  # add learned position embedding to the patch embeddings.
+        x = self.pos_drop(x)  # dropout
         
-        x = x.reshape(B, self.h, self.w, self.embed_dim)
+        x = x.reshape(B, self.h, self.w, self.embed_dim) # reshape into (batch_size, number_patches_height, number_patches_width, n_embed_dim)
         for blk in self.blocks:
             x = blk(x)
 
         return x
 
     def forward(self, x):
-        x = self.forward_features(x)
-        x = self.head(x)
+        x = self.forward_features(x) # go into embedding, AFNO blocks
+        x = self.head(x)  # linear reconstruction
         x = rearrange(
             x,
-            "b h w (p1 p2 c_out) -> b c_out (h p1) (w p2)",
+            "b h w (p1 p2 c_out) -> b c_out (h p1) (w p2)",  # undo reshaping into patches
             p1=self.patch_size[0],
             p2=self.patch_size[1],
             h=self.img_size[0] // self.patch_size[0],
@@ -268,7 +268,7 @@ class PatchEmbed(nn.Module):
         self.img_size = img_size
         self.patch_size = patch_size
         self.num_patches = num_patches
-        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=patch_size)
+        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=patch_size)  # use same "embedding function" at every patch location
 
     def forward(self, x):
         B, C, H, W = x.shape
