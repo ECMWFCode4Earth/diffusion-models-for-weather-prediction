@@ -28,6 +28,7 @@ dependencies:
   # - scipy
   # - xskillscore
   - zarr
+  - timm # for running fourcastnet.
   - omegaconf
   - hydra-core
   # - xesmf

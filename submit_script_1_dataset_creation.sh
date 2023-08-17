@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=CreateData
-#SBATCH --time=0-01:00:00
+#SBATCH --time=0-04:00:00
 #SBATCH --mem-per-cpu=16G
 
 # output files

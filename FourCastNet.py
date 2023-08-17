@@ -1,25 +1,15 @@
 #reference: https://github.com/NVlabs/AFNO-transformer
 # adapted from: https://github.com/NVlabs/FourCastNet/blob/master/networks/afnonet.py
 
-
-import math
 from functools import partial
-from collections import OrderedDict
-from copy import Error, deepcopy
-from re import S
-from numpy.lib.arraypad import pad
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-#from timm.data import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from timm.models.layers import DropPath, trunc_normal_
 import torch.fft
-from torch.nn.modules.container import Sequential
-from torch.utils.checkpoint import checkpoint_sequential
-from einops import rearrange, repeat
-from einops.layers.torch import Rearrange
-from utils.img_utils import PeriodicPad2d
+from einops import rearrange
+
+from omegaconf import DictConfig
 
 
 class Mlp(nn.Module):
@@ -153,71 +143,43 @@ class Block(nn.Module):
         x = x + residual
         return x
 
-class PrecipNet(nn.Module):
-    def __init__(self, params, backbone):
-        super().__init__()
-        self.params = params
-        self.patch_size = (params.patch_size, params.patch_size)
-        self.in_chans = params.N_in_channels
-        self.out_chans = params.N_out_channels
-        self.backbone = backbone
-        self.ppad = PeriodicPad2d(1)
-        self.conv = nn.Conv2d(self.out_chans, self.out_chans, kernel_size=3, stride=1, padding=0, bias=True)
-        self.act = nn.ReLU()
-
-    def forward(self, x):
-        x = self.backbone(x)
-        x = self.ppad(x)
-        x = self.conv(x)
-        x = self.act(x)
-        return x
 
 class AFNONet(nn.Module):
     def __init__(
             self,
-            params,
-            img_size=(720, 1440),
-            patch_size=(16, 16),
-            in_chans=2,  # why is this only two? -> probably gets overwritten later
-            out_chans=2,
-            embed_dim=768, # 3 x 256 - maybe leftover from RGB images
-            depth=12,
-            mlp_ratio=4.,
-            drop_rate=0.,
-            drop_path_rate=0.,
-            num_blocks=16,
-            sparsity_threshold=0.01,
-            hard_thresholding_fraction=1.0,
+            config,
+            img_size,
+            in_channels,
+            out_channels
         ):
         super().__init__()
-        self.params = params
         self.img_size = img_size
-        self.patch_size = (params.patch_size, params.patch_size)
-        self.in_chans = params.N_in_channels
-        self.out_chans = params.N_out_channels
-        self.num_features = self.embed_dim = embed_dim
-        self.num_blocks = params.num_blocks 
+        self.patch_size = (config.patch_size, config.patch_size)
+        self.in_chans = in_channels
+        self.out_chans =out_channels
+        self.num_features = self.embed_dim = config.embed_dim
+        self.num_blocks = config.num_blocks 
         norm_layer = partial(nn.LayerNorm, eps=1e-6)
 
-        self.patch_embed = PatchEmbed(img_size=img_size, patch_size=self.patch_size, in_chans=self.in_chans, embed_dim=embed_dim)
+        self.patch_embed = PatchEmbed(img_size=img_size, patch_size=self.patch_size, in_chans=self.in_chans, embed_dim=config.embed_dim)
         num_patches = self.patch_embed.num_patches
 
-        self.pos_embed = nn.Parameter(torch.zeros(1, num_patches, embed_dim))
-        self.pos_drop = nn.Dropout(p=drop_rate)
+        self.pos_embed = nn.Parameter(torch.zeros(1, num_patches, config.embed_dim))
+        self.pos_drop = nn.Dropout(p=config.drop_rate)
 
-        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]
+        dpr = [x.item() for x in torch.linspace(0, config.drop_path_rate, config.depth)]
 
         self.h = img_size[0] // self.patch_size[0]
         self.w = img_size[1] // self.patch_size[1]
 
         self.blocks = nn.ModuleList([
-            Block(dim=embed_dim, mlp_ratio=mlp_ratio, drop=drop_rate, drop_path=dpr[i], norm_layer=norm_layer,
-            num_blocks=self.num_blocks, sparsity_threshold=sparsity_threshold, hard_thresholding_fraction=hard_thresholding_fraction) 
-        for i in range(depth)])
+            Block(dim=config.embed_dim, mlp_ratio=config.mlp_ratio, drop=config.drop_rate, drop_path=dpr[i], norm_layer=norm_layer,
+            num_blocks=self.num_blocks, sparsity_threshold=config.sparsity_threshold, hard_thresholding_fraction=config.hard_thresholding_fraction) 
+        for i in range(config.depth)])
 
-        self.norm = norm_layer(embed_dim)
+        self.norm = norm_layer(config.embed_dim)
 
-        self.head = nn.Linear(embed_dim, self.out_chans*self.patch_size[0]*self.patch_size[1], bias=False)  # decoding layer
+        self.head = nn.Linear(config.embed_dim, self.out_chans*self.patch_size[0]*self.patch_size[1], bias=False)  # decoding layer
 
         trunc_normal_(self.pos_embed, std=.02)
         self.apply(self._init_weights)
@@ -278,8 +240,21 @@ class PatchEmbed(nn.Module):
 
 
 if __name__ == "__main__":
-    model = AFNONet(img_size=(720, 1440), patch_size=(4,4), in_chans=3, out_chans=10)
-    sample = torch.randn(1, 3, 720, 1440)
+    config = DictConfig(
+        {"patch_size": 4,
+         "embed_dim": 256,
+         "num_blocks": 16,
+         "drop_rate": 0.,
+         "drop_path_rate": 0.,
+         "depth": 3,
+         "mlp_ratio":1.,
+         "sparsity_threshold": 0.,
+         "hard_thresholding_fraction": 1.0,
+         },
+    )
+
+    model = AFNONet(config=config, img_size=(32, 64), in_channels=3, out_channels=10,)
+    sample = torch.randn(1, 3, 32, 64)
     result = model(sample)
     print(result.shape)
     print(torch.norm(result))
