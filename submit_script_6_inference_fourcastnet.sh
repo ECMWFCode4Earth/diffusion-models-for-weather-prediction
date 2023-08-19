@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=EvalCond
+#SBATCH --job-name=EvalFour
 #SBATCH --time=0-03:45:00
 #SBATCH -G nvidia-a100:1
 #SBATCH --mem-per-cpu=16G
@@ -12,25 +12,25 @@
 helpFunction()
 {
    echo ""
-   echo "Usage: $0 -d DatasetID -m ModelID -e EnsembleMembers"
-   echo -e "\t-d The ID of the dataset the model was trained on."
-   echo -e "\t-m The ID of the model the predictions were created with."
-   echo -e "\t-e The number of ensemble members to be created."
+   echo "Usage: $0 -t DatasetTemplateName -e ExperimentName -m modelName"
+   echo -t "\t-m The name of the dataset template that should be used."
+   echo -e "\t-e The name of the experiment conducted on the dataset."
+   echo -e "\t-m The name of the model the predictions should be created with."
    exit 1 # Exit script after printing help
 }
 
-while getopts "d:m:e:" opt
+while getopts "t:e:m:" opt
 do
    case "$opt" in
-      d ) DatasetID="$OPTARG" ;;
+      t ) TemplateName="$OPTARG" ;;
+      e ) ExperimentName="$OPTARG" ;;
       m ) ModelID="$OPTARG" ;;
-      e ) EnsembleMembers="$OPTARG" ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
    esac
 done
 
 # Print helpFunction in case parameters are empty
-if [ -z "$DatasetID" ] || [ -z "$ModelID" ] || [ -z "$EnsembleMembers" ]
+if [ -z "$TemplateName" ] || [ -z "$ExperimentName" ] || [ -z "$ModelID" ]
 then
    echo "Some or all of the parameters are empty.";
    helpFunction
@@ -40,6 +40,6 @@ fi
 module load Anaconda3/2020.07
 source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
-conda activate TORCH311
+conda activate WD_model
 
-srun python s4_test_n_diffusion_timesteps.py -did $DatasetID -mid $ModelID -nens $EnsembleMembers
+srun python s6_write_predictions_FourCast.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID

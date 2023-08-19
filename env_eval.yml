@@ -1,7 +1,7 @@
 name: WD_eval  # to be used for evaluation purposes: ie. plotting, computing metrics, ...
 channels:
-  - defaults
   - conda-forge
+  - defaults
 dependencies:
   - python
   - xarray
@@ -14,8 +14,7 @@ dependencies:
   - scipy
   - xskillscore
   - zarr
-  - xesmf
   - hydra-core
+  - netcdf4
   - omegaconf
-
-
+  # - xesmf=0.2.0

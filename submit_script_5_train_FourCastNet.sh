@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #SBATCH --job-name=RunFour
-#SBATCH --time=0-2:45:00
+#SBATCH --time=1-2:45:00
 #SBATCH -G nvidia-a100:1
-#SBATCH --mem-per-cpu=16G
-#SBATCH --cpus-per-task=4
+#SBATCH --mem-per-cpu=20G
+#SBATCH --cpus-per-task=2
 # output files
 #SBATCH -o /data/compoundx/WeatherDiff/job_log/%x-%u-%j.out
 #SBATCH -e /data/compoundx/WeatherDiff/job_log/%x-%u-%j.err
@@ -39,5 +39,5 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate WD_model
 
-srun python s5_train_FourCastNet.py experiment=$experiment_name
+srun python s5_train_FourCastNet.py +experiment=$experiment_name
 
