@@ -12,23 +12,27 @@
 helpFunction()
 {
    echo ""
-   echo "Usage: $0 -m modelName -e NEnsembleMembers"
+   echo "Usage: $0 -t DatasetTemplateName -e ExperimentName -m modelName -n NEnsembleMembers"
+   echo -t "\t-m The name of the dataset template that should be used."
+   echo -e "\t-e The name of the experiment conducted on the dataset."
    echo -e "\t-m The name of the model the predictions should be created with."
-   echo -e "\t-e The number of ensemble members to be created."
+   echo -e "\t-n The number of ensemble members to be created."
    exit 1 # Exit script after printing help
 }
 
-while getopts "m:e:" opt
+while getopts "t:e:m:n:" opt
 do
    case "$opt" in
+      t ) TemplateName="$OPTARG" ;;
+      e ) ExperimentName="$OPTARG" ;;
       m ) ModelID="$OPTARG" ;;
-      e ) EnsembleMembers="$OPTARG" ;;
+      n ) EnsembleMembers="$OPTARG" ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
    esac
 done
 
 # Print helpFunction in case parameters are empty
-if [ -z "$ModelID" ] || [ -z "$EnsembleMembers" ]
+if [ -z "$TemplateName" ] || [ -z "$ExperimentName" ] || [ -z "$ModelID" ] || [ -z "$EnsembleMembers" ]
 then
    echo "Some or all of the parameters are empty.";
    helpFunction
@@ -40,4 +44,4 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate WD_model
 
-srun python s3_write_predictions_CPD.py +model_name=$ModelID +n_ensemble_members=$EnsembleMembers
+srun python s3_write_predictions_CPD.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID +n_ensemble_members=$EnsembleMembers

@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#SBATCH --job-name=LRSchedule
-#SBATCH --time=0:10:00
-#SBATCH -G 1
-#SBATCH --mem-per-cpu=16G
-#SBATCH --cpus-per-task=4
+#SBATCH --job-name=RunFour
+#SBATCH --time=1-2:45:00
+#SBATCH -G nvidia-a100:1
+#SBATCH --mem-per-cpu=20G
+#SBATCH --cpus-per-task=2
 # output files
 #SBATCH -o /data/compoundx/WeatherDiff/job_log/%x-%u-%j.out
 #SBATCH -e /data/compoundx/WeatherDiff/job_log/%x-%u-%j.err
@@ -13,30 +13,31 @@
 helpFunction()
 {
    echo ""
-   echo "Usage: $0 -d DatasetID"
-   echo -e "\t-d The ID of the dataset to train the model on. The ID is created when creating the dataset."
+   echo "Usage: $0 -e experiment_name"
+   echo -e "\t-e The name of the experiment template to be used."
    exit 1 # Exit script after printing help
 }
 
-while getopts "d:" opt
+while getopts "e:" opt
 do
    case "$opt" in
-      d ) DatasetID="$OPTARG" ;;
+      e ) experiment_name="$OPTARG" ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
    esac
 done
 
 # Print helpFunction in case parameters are empty
-if [ -z "$DatasetID" ]
+if  [ -z "$experiment_name" ]
 then
    echo "Some or all of the parameters are empty.";
    helpFunction
 fi
-# end reading command line arguments
+# stop reading command line arguments
 
 module load Anaconda3/2020.07
 source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
-conda activate TORCH311
+conda activate WD_model
 
-srun python s5_lr_schedule_selection.py  --dataset_id $DatasetID --ds_config_base_path "/data/compoundx/WeatherDiff/config_file/"
+srun python s5_train_FourCastNet.py +experiment=$experiment_name
+
