@@ -84,7 +84,7 @@ def train_LFD(config: DictConfig) -> None:
     lr_monitor = LearningRateMonitor(logging_interval="step")
 
     early_stopping = EarlyStopping(
-        monitor="val_loss", mode="min", patience=config.experiment.training.patience
+        monitor="val_reconstruction_loss", mode="min", patience=config.experiment.training.patience
     )
 
     trainer = pl.Trainer(

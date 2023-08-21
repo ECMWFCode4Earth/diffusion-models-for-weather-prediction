@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=Diffusion
-#SBATCH --time=0-3:35:00
+#SBATCH --time=0-10:35:00
 #SBATCH -G nvidia-a100:1
 #SBATCH --mem-per-cpu=16G
 #SBATCH --cpus-per-task=4
