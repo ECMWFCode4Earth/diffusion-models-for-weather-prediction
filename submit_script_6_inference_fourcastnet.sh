@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=EvalFour
-#SBATCH --time=0-03:45:00
+#SBATCH --time=0-06:45:00
 #SBATCH -G nvidia-a100:1
 #SBATCH --mem-per-cpu=16G
 # output files
@@ -15,7 +15,7 @@ helpFunction()
    echo "Usage: $0 -t DatasetTemplateName -e ExperimentName -m modelName"
    echo -t "\t-m The name of the dataset template that should be used."
    echo -e "\t-e The name of the experiment conducted on the dataset."
-   echo -e "\t-m The name of the model the predictions should be created with."
+   echo -m "\t-m The name of the model the predictions should be created with."
    exit 1 # Exit script after printing help
 }
 
