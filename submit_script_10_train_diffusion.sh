@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH --job-name=VAE
-#SBATCH --time=0-0:05:00
+#SBATCH --job-name=Diffusion
+#SBATCH --time=0-3:35:00
 #SBATCH -G nvidia-a100:1
 #SBATCH --mem-per-cpu=16G
 #SBATCH --cpus-per-task=4
@@ -39,5 +39,4 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate TORCH311
 
-srun python s9_train_vae.py +experiment=$experiment_name
-
+srun python s10_train_LFD.py +experiment=$experiment_name
