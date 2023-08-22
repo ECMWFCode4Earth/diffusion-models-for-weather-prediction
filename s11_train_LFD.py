@@ -93,7 +93,8 @@ def train_LFD(config: DictConfig) -> None:
         accelerator=config.experiment.training.accelerator,
         devices=config.experiment.training.devices,
         callbacks=[EMA(config.experiment.training.ema_decay), lr_monitor, early_stopping],
-        logger=tb_logger
+        logger=tb_logger,
+        gradient_clip_val=0.5 # Gradient clip value for exploding gradient
     )
 
     trainer.fit(model)
