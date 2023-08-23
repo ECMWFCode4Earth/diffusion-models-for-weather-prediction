@@ -71,7 +71,8 @@ def vae_inference(config: DictConfig) -> None:
         r, _, x, _ = restored_model(data)
         
         if i==0:
-            print(f"Input reduction factor: {np.round(np.prod(r.shape[1:]/np.prod(x.shape[1:])), decimals=2)}")
+            print(r.shape, x.shape)
+            print(f"Input reduction factor: {np.round(np.prod(r.shape[1:])/np.prod(x.shape[1:]), decimals=2)}")
         
         out.append(r)
         

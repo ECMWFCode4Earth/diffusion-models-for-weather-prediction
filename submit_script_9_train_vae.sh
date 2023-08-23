@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=VAE
-#SBATCH --time=0-6:05:00
+#SBATCH --time=1-6:05:00
 #SBATCH -G nvidia-a100:1
 #SBATCH --mem-per-cpu=64G
 #SBATCH --cpus-per-task=1
