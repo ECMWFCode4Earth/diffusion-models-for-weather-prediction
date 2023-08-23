@@ -7,18 +7,16 @@ import pytorch_lightning as pl
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
-
-from train_FourCastNet import FourCastNetDirect
-
-from WD.datasets import Conditional_Dataset_Zarr_Iterable
 from WD.utils import create_dir
+
+from dm_zoo.latent.vae.vae_lightning_module import VAE
+from WD.datasets import Conditional_Dataset_Zarr_Iterable
 from WD.io import create_xr_output_variables
-# from WD.io import load_config, write_config  # noqa F401
 
-
+import numpy as np
 
 @hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/inference", config_name="config")
-def main(config: DictConfig) -> None:
+def vae_inference(config: DictConfig) -> None:
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     dir_name = hydra_cfg['runtime']['output_dir']  # the directory the hydra log is written to.
     dir_name = os.path.basename(os.path.normpath(dir_name))  # we only need the last part
@@ -37,27 +35,48 @@ def main(config: DictConfig) -> None:
     ds = Conditional_Dataset_Zarr_Iterable(test_ds_path, ds_config.template, shuffle_chunks=config.shuffle_chunks, 
                                                 shuffle_in_chunks=config.shuffle_in_chunks)
     
-    model_ckpt = [x for x in model_load_dir.iterdir()][0]
-
     conditioning_channels = ds.array_inputs.shape[1] * len(ds.conditioning_timesteps) + ds.array_constants.shape[0]
     generated_channels = ds.array_targets.shape[1]
     img_size = ds.array_targets.shape[-2:]
 
-    restored_model = FourCastNetDirect.load_from_checkpoint(
-        model_ckpt,
-        config=ml_config.experiment.fourcastnet,
-        img_size=img_size,
-        in_channels=conditioning_channels,
-        out_channels=generated_channels,
-        loss_fn=config.loss_fn
-    )
+    print(ml_config)
 
-    dl = DataLoader(ds, batch_size=config.batchsize)
-    trainer = pl.Trainer()
+    if ml_config.experiment.vae.type == "input":
+        n_channel = conditioning_channels
+    elif ml_config.experiment.vae.type == "output":
+        n_channel = generated_channels
+    else:
+        raise AssertionError
+    
+    in_shape = (n_channel, img_size[0], img_size[1])
 
-    out = trainer.predict(restored_model, dl)
+    model_ckpt = [x for x in model_load_dir.iterdir()][0]
+
+    restored_model = VAE.load_from_checkpoint(model_ckpt, map_location="cpu", 
+                inp_shape = in_shape, 
+                dim=ml_config.experiment.vae.dim, 
+                channel_mult = ml_config.experiment.vae.channel_mult, 
+                batch_size = ml_config.experiment.vae.batch_size, 
+                lr = ml_config.experiment.vae.lr, 
+                lr_scheduler_name=ml_config.experiment.vae.lr_scheduler_name, 
+                num_workers = ml_config.experiment.vae.num_workers, 
+                beta = ml_config.experiment.vae.beta,
+                data_type = ml_config.experiment.vae.type)
+    
+    dl = DataLoader(ds, batch_size=ml_config.experiment.vae.batch_size)
+
+    out = []
+    for i, data in enumerate(dl):
+        
+        r, _, x, _ = restored_model(data)
+        
+        if i==0:
+            print(r.shape, x.shape)
+            print(f"Input reduction factor: {np.round(np.prod(r.shape[1:])/np.prod(x.shape[1:]), decimals=2)}")
+        
+        out.append(r)
+        
     out = torch.cat(out, dim=0).unsqueeze(dim=0) # to keep compatible with the version that uses ensemble members
-    print(out.shape)
 
     model_output_dir = os.path.join(model_output_dir, config.data.template, config.experiment, model_name, dir_name)
     create_dir(model_output_dir)
@@ -67,13 +86,14 @@ def main(config: DictConfig) -> None:
 
     targets = torch.tensor(ds.data.targets.data[ds.start+ds.lead_time:ds.stop+ds.lead_time], dtype=torch.float).unsqueeze(dim=0)
 
-    print(targets.shape)
+    
     gen_xr = create_xr_output_variables(
         out,
         zarr_path=f"{config.paths.data_dir}/{config.data.template}_test.zarr/targets",
         config=ds_config,
         min_max_file_path=f"{config.paths.data_dir}/{config.data.template}_output_min_max.nc"
     )
+
 
     target_xr = create_xr_output_variables(
         targets,
@@ -90,7 +110,6 @@ def main(config: DictConfig) -> None:
     target_xr.to_netcdf(target_dir)
     print(f"Target data written at: {target_dir}")
 
-
 if __name__ == '__main__':
-    main()
+    vae_inference()
 

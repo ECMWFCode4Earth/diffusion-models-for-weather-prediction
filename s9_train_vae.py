@@ -9,7 +9,7 @@ from omegaconf import DictConfig, OmegaConf
 from WD.io import load_config
 from WD.datasets import Conditional_Dataset_Zarr_Iterable
 from WD.utils import create_dir, generate_uid, check_devices
-from latent.vae.vae_lightning_module import VAE
+from dm_zoo.latent.vae.vae_lightning_module import VAE
 import torch
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.callbacks.early_stopping import (
