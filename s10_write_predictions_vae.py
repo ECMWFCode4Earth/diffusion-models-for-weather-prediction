@@ -13,6 +13,8 @@ from dm_zoo.latent.vae.vae_lightning_module import VAE
 from WD.datasets import Conditional_Dataset_Zarr_Iterable
 from WD.io import create_xr_output_variables
 
+import numpy as np
+
 @hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/inference", config_name="config")
 def vae_inference(config: DictConfig) -> None:
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
@@ -62,12 +64,17 @@ def vae_inference(config: DictConfig) -> None:
                 data_type = ml_config.experiment.vae.type)
     
     dl = DataLoader(ds, batch_size=ml_config.experiment.vae.batch_size)
-    trainer = pl.Trainer()
 
     out = []
-    for data in dl:
-        out.append(restored_model(data)[0])
-
+    for i, data in enumerate(dl):
+        
+        r, _, x, _ = restored_model(data)
+        
+        if i==0:
+            print(f"Input reduction factor: {np.round(np.prod(r.shape[1:]/np.prod(x.shape[1:])), decimals=2)}")
+        
+        out.append(r)
+        
     out = torch.cat(out, dim=0).unsqueeze(dim=0) # to keep compatible with the version that uses ensemble members
 
     model_output_dir = os.path.join(model_output_dir, config.data.template, config.experiment, model_name, dir_name)

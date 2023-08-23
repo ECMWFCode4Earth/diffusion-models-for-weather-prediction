@@ -18,7 +18,7 @@ from WD.utils import AreaWeightedMSELoss
 
 
 @hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/inference", config_name="config")
-def vae_inference(config: DictConfig) -> None:
+def LFD_inference(config: DictConfig) -> None:
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     dir_name = hydra_cfg['runtime']['output_dir']  # the directory the hydra log is written to.
     dir_name = os.path.basename(os.path.normpath(dir_name))  # we only need the last part
@@ -42,45 +42,37 @@ def vae_inference(config: DictConfig) -> None:
     img_size = ds.array_targets.shape[-2:]
 
     print(ml_config)
-
-    if ml_config.experiment.vae.type == "input":
-        n_channel = conditioning_channels
-    elif ml_config.experiment.vae.type == "output":
-        n_channel = generated_channels
-    else:
-        raise AssertionError
     
-
     model_ckpt = [x for x in model_load_dir.iterdir()][0]
-    if config.experiment.model.loss_fn_name == "MSE_Loss":
+    if ml_config.experiment.model.loss_fn_name == "MSE_Loss":
         loss_fn = torch.nn.functional.mse_loss
-    elif config.experiment.model.loss_fn_name == "AreaWeighted_MSE_Loss":
+    elif ml_config.experiment.model.loss_fn_name == "AreaWeighted_MSE_Loss":
         lat_grid = ds.data.targets.lat[:]
         lon_grid =  ds.data.targets.lon[:]
         loss_fn = AreaWeightedMSELoss(lat_grid, lon_grid).loss_fn
     else:
         raise NotImplementedError("Invalid loss function.")
     
-    if config.experiment.model.diffusion.sampler_name == "DDPM":  # this is the default case
+    if ml_config.experiment.model.diffusion.sampler_name == "DDPM":  # this is the default case
         sampler = None
     else:
         raise NotImplementedError("This sampler has not been implemented.")  
     
-    with open_dict(config):
-        config.experiment.model.image_size = img_size
-        config.experiment.model.generated_channels = generated_channels
-        config.experiment.model.conditioning_channels = conditioning_channels
+    with open_dict(ml_config):
+        ml_config.experiment.model.image_size = img_size
+        ml_config.experiment.model.generated_channels = generated_channels
+        ml_config.experiment.model.conditioning_channels = conditioning_channels
 
     restored_model = LatentForecastDiffusion.load_from_checkpoint(model_ckpt, map_location="cpu", 
-                            model_config = config.experiment.model,
+                            model_config = ml_config.experiment.model,
                             loss_fn = loss_fn,
                             sampler = sampler)
     
-    dl = DataLoader(ds, batch_size=ml_config.experiment.vae.batch_size)
+    dl = DataLoader(ds, batch_size=ml_config.experiment.model.batch_size)
     trainer = pl.Trainer()
 
     out = []
-    for i in nens:
+    for i in range(nens):
         out.append(trainer.predict(restored_model, dl))
 
     out = torch.cat(out, dim=0).unsqueeze(dim=0) # to keep compatible with the version that uses ensemble members
@@ -118,5 +110,5 @@ def vae_inference(config: DictConfig) -> None:
     print(f"Target data written at: {target_dir}")
 
 if __name__ == '__main__':
-    vae_inference()
+    LFD_inference()
 

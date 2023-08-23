@@ -1,1 +1,1 @@
-python s10_write_predictions_vae.py +data.template=geopotential_500_highres +experiment=vae_geopotential_highres_v1 +model_name=2023-08-22_15-11-05
+python s10_write_predictions_vae.py +data.template=geopotential_500_highres +experiment=vae_geopotential_highres_v1 +model_name=2023-08-23_00-43-26
