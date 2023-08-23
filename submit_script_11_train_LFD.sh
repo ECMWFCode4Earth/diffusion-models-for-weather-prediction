@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#SBATCH --job-name=Diffusion
-#SBATCH --time=0-10:35:00
+#SBATCH --job-name=LFD
+#SBATCH --time=1-10:35:00
 #SBATCH -G nvidia-a100:1
-#SBATCH --mem-per-cpu=16G
-#SBATCH --cpus-per-task=4
+#SBATCH --mem-per-cpu=64G
+#SBATCH --cpus-per-task=1
 # output files
 #SBATCH -o /data/compoundx/WeatherDiff/job_log/%x-%u-%j.out
 #SBATCH -e /data/compoundx/WeatherDiff/job_log/%x-%u-%j.err

@@ -73,10 +73,13 @@ def LFD_inference(config: DictConfig) -> None:
 
     out = []
     for i in range(nens):
-        out.append(trainer.predict(restored_model, dl))
+        pred = trainer.predict(restored_model, dl)
+        pred = torch.cat(pred, dim=0).unsqueeze(dim=0)
+        out.append(pred)
 
-    out = torch.cat(out, dim=0).unsqueeze(dim=0) # to keep compatible with the version that uses ensemble members
+    out = torch.cat(out, dim=0) # to keep compatible with the version that uses ensemble members
 
+    print(out.shape)
     model_output_dir = os.path.join(model_output_dir, config.data.template, config.experiment, model_name, dir_name)
     create_dir(model_output_dir)
 
