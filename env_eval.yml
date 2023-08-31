@@ -3,18 +3,17 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python
-  - xarray
-  - matplotlib
-  - numpy
-  - ipykernel
+  - numpy=<1.24
+  - esmpy=8.0.1
+  - xesmf=0.3.0
   - dask
+  - ipykernel
+  - netcdf4
+  - matplotlib
   - tensorboard
   - cartopy
   - scipy
   - xskillscore
   - zarr
   - hydra-core
-  - netcdf4
   - omegaconf
-  # - xesmf=0.2.0
