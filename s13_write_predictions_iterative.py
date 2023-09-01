@@ -63,13 +63,13 @@ def main(config: DictConfig) -> None:
     
     n_steps = 2  # hard-code for now. Relax later.
 
-    constants = torch.tensor(ds.array_constants[:], dtype=torch.float)
-    
+    constants = torch.tensor(ds.array_constants[:], dtype=torch.float).to(restored_model.device)
 
     res = []
     for i in range(nens):  # loop over ensemble members
         ts = []
-        for b in dl:  # loop over batches in test set
+        for i, b in enumerate(dl):  # loop over batches in test set
+            print(i)
             input = b
             trajectories = torch.zeros(size=(b[1].shape[0], n_steps, *b[1].shape[1:]))
             for step in range(n_steps):
@@ -79,10 +79,10 @@ def main(config: DictConfig) -> None:
                     trajectories[:,step,...] = out
                     input = [torch.concatenate([out, constants.unsqueeze(0).expand(out.size(0), *constants.size())], dim=1), None]  # we don't need the true target here
             ts.append(trajectories)
-            if i == 5:
+            if i == 4:
                 break
         res.append(torch.cat(ts, dim=0))
-    res = torch.stack(out, dim=0)
+    res = torch.stack(res, dim=0)
                     
 
 
