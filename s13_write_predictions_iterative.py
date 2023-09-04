@@ -59,51 +59,41 @@ def main(config: DictConfig) -> None:
     )
 
     dl = DataLoader(ds, batch_size=config.batchsize)
-    trainer = pl.Trainer()
     
-    n_steps = 2  # hard-code for now. Relax later.
+    n_steps =  config.n_steps
 
     constants = torch.tensor(ds.array_constants[:], dtype=torch.float).to(restored_model.device)
 
-    res = []
+    out = []
     for i in range(nens):  # loop over ensemble members
         ts = []
-        for i, b in enumerate(dl):  # loop over batches in test set
-            print(i)
+        for b in dl:  # loop over batches in test set
             input = b
             trajectories = torch.zeros(size=(b[1].shape[0], n_steps, *b[1].shape[1:]))
             for step in range(n_steps):
                 restored_model.eval()
                 with torch.no_grad():  
-                    out = restored_model.forward(input)  # is this a list of tensors or a tensor?
-                    trajectories[:,step,...] = out
-                    input = [torch.concatenate([out, constants.unsqueeze(0).expand(out.size(0), *constants.size())], dim=1), None]  # we don't need the true target here
+                    res = restored_model.forward(input)  # is this a list of tensors or a tensor?
+                    trajectories[:,step,...] = res
+                    input = [torch.concatenate([res, constants.unsqueeze(0).expand(res.size(0), *constants.size())], dim=1), None]  # we don't need the true target here
             ts.append(trajectories)
-            if i == 4:
-                break
-        res.append(torch.cat(ts, dim=0))
-    res = torch.stack(res, dim=0)
+        out.append(torch.cat(ts, dim=0))
+    out = torch.stack(out, dim=0)
                     
 
+    # get the targets:
+    targets = torch.tensor(ds.data.targets.data[ds.start+ds.lead_time:ds.stop+ds.lead_time])
+    l = len(targets)
 
-    """
-        out.extend(trainer.predict(restored_model, dl))
+    indices = torch.tensor([torch.arange(i, i+n_steps) for i in range(l-n_steps+1)])
+    targets = targets[indices,:,:,:].unsqueeze(dim=0)
+    # fill targets with infty values until we reach the shape we need
+    torch.cat([targets, torch.ones((targets.shape[0], n_steps-1, *targets.shape[2:]))*torch.inf], dim=1)
 
-
-
-    out = []
-
-
-    out = torch.cat(out, dim=0)
-    out = out.view(nens, -1, *out.shape[1:])
+    print(res.shape, targets.shape)
 
     model_output_dir = os.path.join(model_output_dir, config.data.template, config.experiment, model_name, dir_name)
     create_dir(model_output_dir)
-
-    # need the view to create axis for
-    # different ensemble members (although only 1 here).
-
-    targets = torch.tensor(ds.data.targets.data[ds.start+ds.lead_time:ds.stop+ds.lead_time], dtype=torch.float).unsqueeze(dim=0)
 
     gen_xr = create_xr_output_variables(
         out,
@@ -126,7 +116,6 @@ def main(config: DictConfig) -> None:
     target_dir = os.path.join(model_output_dir, "target.nc")
     target_xr.to_netcdf(target_dir)
     print(f"Target data written at: {target_dir}")
-    """
 
 if __name__ == '__main__':
     main()

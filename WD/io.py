@@ -198,9 +198,18 @@ def create_xr_output_variables(
         )
     ).coords
     ds.coords.update(coords)
-    ds = ds.expand_dims({"lead_time": 1}).assign_coords(
-        {"lead_time": [lead_time]}
-    )
+
+    if data.ndim == 5:  # (ensemble_member, bs, channels, lat, lon)
+        ds = ds.expand_dims({"lead_time": 1}).assign_coords(
+            {"lead_time": [lead_time]}
+        )
+    elif data.ndim == 6:  # (ensemble_member, bs, len_traj, channels, lat, lon)
+        ds = ds.expand_dims({"lead_time": 1}).assign_coords(
+            {"lead_time": [i*lead_time for i in range(data.shape[2])]}
+        )
+    else:
+        raise ValueError("Invalid number of dimensions of input data.")     
+       
     ds = ds.expand_dims({"ensemble_member": data.shape[0]}).assign_coords(
         {"ensemble_member": np.arange(data.shape[0])}
     )
@@ -219,9 +228,9 @@ def create_xr_output_variables(
         if "_max" in name
     ]
 
-    for i in range(data.shape[2]):
+    for i in range(data.shape[-3]):
         ds[var_names[i]] = xr.DataArray(
-            data[:, :, i : i + 1, ...],  # noqa E203
+            data[..., i : i + 1, :, :],
             dims=("ensemble_member", "init_time", "lead_time", "lat", "lon"),
             coords={
                 "ensemble_member": ds.ensemble_member,
