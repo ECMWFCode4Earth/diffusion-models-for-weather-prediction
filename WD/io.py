@@ -228,17 +228,32 @@ def create_xr_output_variables(
         if "_max" in name
     ]
 
-    for i in range(data.shape[-3]):
-        ds[var_names[i]] = xr.DataArray(
-            data[..., i : i + 1, :, :],
-            dims=("ensemble_member", "init_time", "lead_time", "lat", "lon"),
-            coords={
-                "ensemble_member": ds.ensemble_member,
-                "lat": ds.lat,
-                "lon": ds.lon,
-                "lead_time": ds.lead_time,
-                "init_time": ds.init_time,
-            },
-        )
-
+    if data.ndim == 5:  # (ensemble_member, bs, channels, lat, lon)
+        for i in range(data.shape[-3]):
+            ds[var_names[i]] = xr.DataArray(
+                data[..., i : i + 1, :, :],
+                dims=("ensemble_member", "init_time", "lead_time", "lat", "lon"),
+                coords={
+                    "ensemble_member": ds.ensemble_member,
+                    "lat": ds.lat,
+                    "lon": ds.lon,
+                    "lead_time": ds.lead_time,
+                    "init_time": ds.init_time,
+                },
+            )
+    elif data.ndim == 6:  # (ensemble_member, bs, len_traj, channels, lat, lon)
+        for i in range(data.shape[-3]):
+            ds[var_names[i]] = xr.DataArray(
+                data[..., i, :, :],
+                dims=("ensemble_member", "init_time", "lead_time", "lat", "lon"),
+                coords={
+                    "ensemble_member": ds.ensemble_member,
+                    "lat": ds.lat,
+                    "lon": ds.lon,
+                    "lead_time": ds.lead_time,
+                    "init_time": ds.init_time,
+                },
+            )        
+    else:
+        raise ValueError("Invalid number of dimensions of input data.")    
     return undo_scaling(ds, ds_min_max)

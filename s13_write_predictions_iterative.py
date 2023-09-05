@@ -85,12 +85,12 @@ def main(config: DictConfig) -> None:
     targets = torch.tensor(ds.data.targets.data[ds.start+ds.lead_time:ds.stop+ds.lead_time])
     l = len(targets)
 
-    indices = torch.tensor([torch.arange(i, i+n_steps) for i in range(l-n_steps+1)])
+    indices = torch.stack([torch.arange(i, i+n_steps) for i in range(l-n_steps+1)], dim=0)
     targets = targets[indices,:,:,:].unsqueeze(dim=0)
     # fill targets with infty values until we reach the shape we need
-    torch.cat([targets, torch.ones((targets.shape[0], n_steps-1, *targets.shape[2:]))*torch.inf], dim=1)
+    targets = torch.cat([targets, torch.ones((targets.shape[0], n_steps-1, *targets.shape[2:]))*torch.inf], dim=1)
 
-    print(res.shape, targets.shape)
+    print(out.shape, targets.shape)
 
     model_output_dir = os.path.join(model_output_dir, config.data.template, config.experiment, model_name, dir_name)
     create_dir(model_output_dir)
