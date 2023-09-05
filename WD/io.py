@@ -205,7 +205,7 @@ def create_xr_output_variables(
         )
     elif data.ndim == 6:  # (ensemble_member, bs, len_traj, channels, lat, lon)
         ds = ds.expand_dims({"lead_time": 1}).assign_coords(
-            {"lead_time": [i*lead_time for i in range(data.shape[2])]}
+            {"lead_time": [(i+1)*lead_time for i in range(data.shape[2])]}
         )
     else:
         raise ValueError("Invalid number of dimensions of input data.")     
