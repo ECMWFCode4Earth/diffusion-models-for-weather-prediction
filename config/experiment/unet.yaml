@@ -11,7 +11,7 @@ training:
   ema_decay: 0.9999
   limit_val_batches: 1.0
   accelerator: "cuda"
-  devices: -1
+  devices: 1
   patience: 50
 
 setup:

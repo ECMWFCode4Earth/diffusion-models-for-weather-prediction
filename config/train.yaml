@@ -1,6 +1,7 @@
 defaults:
   - paths: default_paths
-
+  - _self_
+  
 hydra:
   job:
     chdir: False

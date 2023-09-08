@@ -114,11 +114,11 @@ hydra:
     - hydra.job.name=train_ddp_process_1
     - hydra.mode=RUN
     task:
-    - +experiment=iterative_diffusion_z_500
+    - +experiment=unet
   job:
     name: train_ddp_process_1
     chdir: false
-    override_dirname: +experiment=iterative_diffusion_z_500
+    override_dirname: +experiment=unet
     id: ???
     num: ???
     config_name: train
@@ -145,7 +145,7 @@ hydra:
       provider: schema
     output_dir: /gpfs1/schlecker/home/wider/Projects/diffusion-models-for-weather-prediction
     choices:
-      experiment: iterative_diffusion_z_500
+      experiment: unet
       paths: default_paths
       hydra/env: default
       hydra/callbacks: null
