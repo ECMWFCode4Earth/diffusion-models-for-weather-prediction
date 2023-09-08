@@ -31,13 +31,13 @@ def train_LFD(config: DictConfig) -> None:
     print(f"Loading dataset {config.experiment.data.template}")
     # ds_config_path = os.path.join(conf.base_path, f"{conf.template}.yml")
     # ds_config = load_config(ds_config_path)
-    ds_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/{config.experiment.data.template}/.hydra/config.yaml")
+    ds_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/{config.experiment.data.template}/.hydra/config.yaml")
 
-    train_ds_path = config.paths.data_dir + f"{config.experiment.data.template}_train.zarr"
+    train_ds_path = config.paths.dir_PreprocessedDatasets + f"{config.experiment.data.template}_train.zarr"
     train_ds = Conditional_Dataset_Zarr_Iterable(train_ds_path, ds_config.template, shuffle_chunks=config.experiment.data.train_shuffle_chunks, 
                                                 shuffle_in_chunks=config.experiment.data.train_shuffle_in_chunks)
 
-    val_ds_path = config.paths.data_dir + f"{config.experiment.data.template}_val.zarr"
+    val_ds_path = config.paths.dir_PreprocessedDatasets + f"{config.experiment.data.template}_val.zarr"
     val_ds = Conditional_Dataset_Zarr_Iterable(val_ds_path, ds_config.template, shuffle_chunks=config.experiment.data.val_shuffle_chunks, shuffle_in_chunks=config.experiment.data.val_shuffle_in_chunks)
 
     # select loss_fn:
@@ -55,7 +55,7 @@ def train_LFD(config: DictConfig) -> None:
     else:
         raise NotImplementedError("This sampler has not been implemented.")  
 
-    model_dir = f"{config.paths.save_model_dir}/{config.experiment.data.template}/{exp_name}/{dir_name}/"
+    model_dir = f"{config.paths.dir_SavedModels}/{config.experiment.data.template}/{exp_name}/{dir_name}/"
     create_dir(model_dir)
 
     # set up logger:

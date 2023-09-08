@@ -1,5 +1,6 @@
 data: 
   ds_format: zarr
+  paths: default_paths
 
 batchsize: 128
 shuffle_chunks: False

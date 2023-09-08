@@ -28,14 +28,14 @@ def main(config: DictConfig) -> None:
     model_name = config.model_name  # we have to pass this to the bash file every time! (should contain a string of the date the run was started).
     nens = config.n_ensemble_members  # we have to pass this to the bash file every time!
 
-    ds_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/{config.data.template}/.hydra/config.yaml")
-    ml_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/training/{config.data.template}/{config.experiment}/{config.model_name}/.hydra/config.yaml")
+    ds_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/{config.data.template}/.hydra/config.yaml")
+    ml_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/training/{config.data.template}/{config.experiment}/{config.model_name}/.hydra/config.yaml")
 
-    model_output_dir = config.paths.inference_dir
+    model_output_dir = config.paths.dir_ModelOutput
 
-    model_load_dir = Path(f"{config.paths.save_model_dir}/{config.data.template}/{config.experiment}/{config.model_name}/lightning_logs/version_0/checkpoints/")
+    model_load_dir = Path(f"{config.paths.dir_SavedModels}/{config.data.template}/{config.experiment}/{config.model_name}/lightning_logs/version_0/checkpoints/")
 
-    test_ds_path = f"{config.paths.data_dir}{config.data.template}_test.zarr"
+    test_ds_path = f"{config.paths.dir_PreprocessedDatasets}{config.data.template}_test.zarr"
 
 
     assert config.shuffle_in_chunks is False, "no shuffling allowed for iterative predictions"
@@ -97,16 +97,16 @@ def main(config: DictConfig) -> None:
 
     gen_xr = create_xr_output_variables(
         out,
-        zarr_path=f"{config.paths.data_dir}/{config.data.template}_test.zarr/targets",
+        zarr_path=f"{config.paths.dir_PreprocessedDatasets}/{config.data.template}_test.zarr/targets",
         config=ds_config,
-        min_max_file_path=f"{config.paths.data_dir}/{config.data.template}_output_min_max.nc"
+        min_max_file_path=f"{config.paths.dir_PreprocessedDatasets}/{config.data.template}_output_min_max.nc"
     )
 
     target_xr = create_xr_output_variables(
         targets,
-        zarr_path=f"{config.paths.data_dir}/{config.data.template}_test.zarr/targets",
+        zarr_path=f"{config.paths.dir_PreprocessedDatasets}/{config.data.template}_test.zarr/targets",
         config=ds_config,
-        min_max_file_path=f"{config.paths.data_dir}/{config.data.template}_output_min_max.nc"
+        min_max_file_path=f"{config.paths.dir_PreprocessedDatasets}/{config.data.template}_output_min_max.nc"
     )
 
     gen_dir = os.path.join(model_output_dir, "gen.nc")

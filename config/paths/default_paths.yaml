@@ -1,5 +1,5 @@
-dir_WeatherBench: "/data/compoundx/WeatherBench/"
-dir_PreprocessedDatasets: "/data/compoundx/WeatherDiff/model_input/"
-dir_SavedModels: "/data/compoundx/WeatherDiff/saved_model/"
-dir_HydraConfigs: "/data/compoundx/WeatherDiff/config_logs/"
-dir_ModelOutput: "/data/compoundx/WeatherDiff/model_output/"
+dir_WeatherBench: "/data/compoundx/WeatherBench/"  # directory the weatherBench dataset was downloaded to
+dir_PreprocessedDatasets: "/data/compoundx/WeatherDiff/model_input/"  # preprocessed datasets
+dir_SavedModels: "/data/compoundx/WeatherDiff/saved_model/"  # checkpoints, tensorboard logs etc.
+dir_HydraConfigs: "/data/compoundx/WeatherDiff/config_logs/"  # when running jobs, the configurations get logged here
+dir_ModelOutput: "/data/compoundx/WeatherDiff/model_output/"  # predictions with the ML models

@@ -23,7 +23,7 @@ def main(config: DictConfig) -> None:
     dir_name = hydra_cfg['runtime']['output_dir']  # the directory the hydra log is written to.
     dir_name = os.path.basename(os.path.normpath(dir_name))  # we only need the last part
 
-    ds_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/{config.experiment.data.template}/.hydra/config.yaml")
+    ds_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/{config.experiment.data.template}/.hydra/config.yaml")
 
     print(f"The torch version being used is {torch.__version__}")
     check_devices()
@@ -31,11 +31,11 @@ def main(config: DictConfig) -> None:
     # load config
     print(f"Loading dataset {config.experiment.data.template}")
 
-    train_ds_path = config.paths.data_dir + f"{config.experiment.data.template}_train.zarr"
+    train_ds_path = config.paths.dir_PreprocessedDatasets + f"{config.experiment.data.template}_train.zarr"
     train_ds = Conditional_Dataset_Zarr_Iterable(train_ds_path, ds_config.template, shuffle_chunks=config.experiment.data.train_shuffle_chunks, 
                                                 shuffle_in_chunks=config.experiment.data.train_shuffle_in_chunks)
 
-    val_ds_path = config.paths.data_dir + f"{config.experiment.data.template}_val.zarr"
+    val_ds_path = config.paths.dir_PreprocessedDatasets + f"{config.experiment.data.template}_val.zarr"
     val_ds = Conditional_Dataset_Zarr_Iterable(val_ds_path, ds_config.template, shuffle_chunks=config.experiment.data.val_shuffle_chunks, shuffle_in_chunks=config.experiment.data.val_shuffle_in_chunks)
 
     if config.experiment.vae.type == "input":
@@ -54,7 +54,7 @@ def main(config: DictConfig) -> None:
                 beta = config.experiment.vae.beta,
                 data_type = config.experiment.vae.type)
 
-    model_dir = f"{config.paths.save_model_dir}/{config.experiment.data.template}/{exp_name}/{dir_name}/"
+    model_dir = f"{config.paths.dir_SavedModels}/{config.experiment.data.template}/{exp_name}/{dir_name}/"
     create_dir(model_dir)
     tb_logger = pl_loggers.TensorBoardLogger(save_dir=model_dir)
 
