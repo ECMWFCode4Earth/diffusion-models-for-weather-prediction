@@ -25,7 +25,7 @@ def LFD_inference(config: DictConfig) -> None:
 
     model_name = config.model_name  # we have to pass this to the bash file every time! (should contain a string).
     nens = config.n_ensemble_members
-    ds_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/{config.data.template}/.hydra/config.yaml")
+    ds_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/data/{config.data.template}/.hydra/config.yaml")
     ml_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/training/{config.data.template}/{config.experiment}/{config.model_name}/.hydra/config.yaml")
 
     model_output_dir = config.paths.dir_ModelOutput

@@ -24,7 +24,7 @@ from pytorch_lightning.callbacks.early_stopping import (
 )
 
 
-@hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/training", config_name="config")
+@hydra.main(version_base=None, config_path="./config", config_name="inference")
 def main(config: DictConfig) -> None:
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     dir_name = hydra_cfg['runtime']['output_dir']  # the directory the hydra log is written to.
@@ -38,7 +38,7 @@ def main(config: DictConfig) -> None:
     print(f"Loading dataset {config.experiment.data.template}")
     # ds_config_path = os.path.join(conf.base_path, f"{conf.template}.yml")
     # ds_config = load_config(ds_config_path)
-    ds_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/{config.experiment.data.template}/.hydra/config.yaml")
+    ds_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/data/{config.experiment.data.template}/.hydra/config.yaml")
 
     # set up datasets:
 

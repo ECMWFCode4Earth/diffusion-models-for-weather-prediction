@@ -31,7 +31,7 @@ def train_LFD(config: DictConfig) -> None:
     print(f"Loading dataset {config.experiment.data.template}")
     # ds_config_path = os.path.join(conf.base_path, f"{conf.template}.yml")
     # ds_config = load_config(ds_config_path)
-    ds_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/{config.experiment.data.template}/.hydra/config.yaml")
+    ds_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/data/{config.experiment.data.template}/.hydra/config.yaml")
 
     train_ds_path = config.paths.dir_PreprocessedDatasets + f"{config.experiment.data.template}_train.zarr"
     train_ds = Conditional_Dataset_Zarr_Iterable(train_ds_path, ds_config.template, shuffle_chunks=config.experiment.data.train_shuffle_chunks, 

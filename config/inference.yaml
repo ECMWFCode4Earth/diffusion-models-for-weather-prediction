@@ -12,4 +12,4 @@ hydra:
   job:
     chdir: False
   run:
-    dir: ${paths.hydra_config_dir}/inference/${data.template}/${experiment}/${model_name}/${now:%Y-%m-%d_%H-%M-%S}
+    dir: ${paths.dir_HydraConfigs}/inference/${data.template}/${experiment}/${model_name}/${now:%Y-%m-%d_%H-%M-%S}

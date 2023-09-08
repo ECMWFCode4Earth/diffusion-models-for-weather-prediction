@@ -19,7 +19,7 @@ import pytorch_lightning as pl
 
 
 
-@hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/inference", config_name="config")
+@hydra.main(version_base=None, config_path="./config", config_name="inference")
 def main(config: DictConfig) -> None:
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     dir_name = hydra_cfg['runtime']['output_dir']  # the directory the hydra log is written to.
@@ -28,7 +28,7 @@ def main(config: DictConfig) -> None:
     model_name = config.model_name  # we have to pass this to the bash file every time! (should contain a string).
     nens = config.n_ensemble_members  # we have to pass this to the bash file every time!
 
-    ds_config = OmegaConf.load(f"{config.paths.dir_PreprocessedDatasets}/{config.data.template}/.hydra/config.yaml")
+    ds_config = OmegaConf.load(f"{config.paths.dir_PreprocessedDatasets}/data/{config.data.template}/.hydra/config.yaml")
     ml_config = OmegaConf.load(f"{config.paths.dir_PreprocessedDatasets}/training/{config.data.template}/{config.experiment}/{config.model_name}/.hydra/config.yaml")
 
     model_output_dir = config.paths.dir_ModelOutput
