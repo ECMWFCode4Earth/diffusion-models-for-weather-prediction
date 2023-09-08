@@ -1,5 +1,5 @@
 data:
-  template: iterative_z_500
+  template: geopotential_500
   ds_format: zarr
   train_shuffle_chunks: True
   train_shuffle_in_chunks: True
@@ -9,17 +9,17 @@ data:
 training:
   max_steps: 5000000
   ema_decay: 0.9999
-  limit_val_batches: 20
+  limit_val_batches: 10
   accelerator: "cuda"
   devices: -1
-  patience: 10
+  patience: 50
 
 setup:
   loss_fn_name: AreaWeighted_MSE_Loss
   sampler_name: DDPM
 
 pixel_diffusion:
-  lr_scheduler_name: CosineAnnealingLR
+  lr_scheduler_name: Constant
   num_diffusion_steps_inference: 200
   batch_size: 64
   learning_rate: 0.0001

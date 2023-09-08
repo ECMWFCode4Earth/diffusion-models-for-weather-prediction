@@ -41,5 +41,5 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate TORCH311
 
-srun python s7_train_unet.py  -did $DatasetID -lrs $LRScheduleName
+srun python s7_train_unet.py +experiment=$experiment_name
 

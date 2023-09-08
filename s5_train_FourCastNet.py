@@ -55,7 +55,7 @@ def main(config: DictConfig) -> None:
     elif config.experiment.setup.loss_fn_name == "AreaWeighted_MSE_Loss":
         lat_grid = train_ds.data.targets.lat[:]
         lon_grid =  train_ds.data.targets.lon[:]
-        AreaWeightedMSELoss(lat_grid, lon_grid).loss_fn
+        loss_fn = AreaWeightedMSELoss(lat_grid, lon_grid).loss_fn
     else:
         raise NotImplementedError("Invalid loss function.")
 
