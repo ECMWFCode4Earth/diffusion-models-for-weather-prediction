@@ -1,0 +1,5 @@
+dir_WeatherBench: "/data/compoundx/WeatherBench/"
+dir_PreprocessedDatasets: "/data/compoundx/WeatherDiff/model_input/"
+dir_SavedModels: "/data/compoundx/WeatherDiff/saved_model/"
+dir_HydraConfigs: "/data/compoundx/WeatherDiff/config_logs/"
+dir_ModelOutput: "/data/compoundx/WeatherDiff/model_output/"

@@ -1,0 +1,24 @@
+data:
+  template: geopotential_500_highres
+  ds_format: zarr
+  train_shuffle_chunks: True
+  train_shuffle_in_chunks: True
+  val_shuffle_chunks: False
+  val_shuffle_in_chunks: False
+
+vae:
+  dim: null
+  type: output
+  beta: 0.00001
+  batch_size: 128
+  lr: 0.0001
+  lr_scheduler_name: ReduceLROnPlateau
+  num_workers: 1
+  channel_mult: [1,2,4]
+
+training:
+  max_steps: 500000
+  ema_decay: 0.9999
+  limit_val_batches: 10
+  accelerator: "cuda"
+  devices: -1

@@ -140,7 +140,7 @@ def open_constant_datasets(
         )  # if no constant vars were selected, return an empty xarray.
 
 
-def write_conditional_datasets(config: DictConfig) -> None:
+def write_conditional_datasets(config: DictConfig, template_name) -> None:
     """Save a preprocessed version of the WeatherBench dataset into a single file.
 
     Args:
@@ -167,8 +167,8 @@ def write_conditional_datasets(config: DictConfig) -> None:
     from_test = config.template.exp_data.test.start
     to_test = config.template.exp_data.test.end
 
-    root_dir = config.paths.data_input_dir
-    out_dir = config.paths.data_output_dir
+    root_dir = config.paths.dir_WeatherBench
+    out_dir = config.paths.dir_PreprocessedDatasets
     train_limits = (from_train, to_train)
     validation_limits = (from_val, to_val)
     test_limits = (from_test, to_test)
@@ -179,7 +179,7 @@ def write_conditional_datasets(config: DictConfig) -> None:
     constant_vars = config.template.data_specs.constants
     max_chunksize = int(config.ds_format.max_chunksize * 1024**3)
 
-    out_filename = config.template.template_name
+    out_filename = template_name
 
     if out_dir is None:
         out_dir = root_dir

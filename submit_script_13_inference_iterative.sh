@@ -8,13 +8,13 @@
 #SBATCH -o /data/compoundx/WeatherDiff/job_log/%x-%u-%j.out
 #SBATCH -e /data/compoundx/WeatherDiff/job_log/%x-%u-%j.err
 
+
 # begin reading command line arguments
 helpFunction()
 {
    echo ""
    echo "Usage: $0 -t DatasetTemplateName -e ExperimentName -m modelName -n NEnsembleMembers -s NSteps"
-   echo -t "\t-m The name of the dataset template that should be used."
-   echo -e "\t-e The name of the experiment conducted on the dataset."
+   echo -e "\t-e The name of the experiment to be conducted."
    echo -e "\t-m The name of the model the predictions should be created with."
    echo -e "\t-n The number of ensemble members to be created."
    echo -e "\t-s The number of steps in the trajectories created."
@@ -34,7 +34,7 @@ do
 done
 
 # Print helpFunction in case parameters are empty
-if [ -z "$TemplateName" ] || [ -z "$ExperimentName" ] || [ -z "$ModelID" ] || [ -z "$EnsembleMembers" ] || [ -z "$Steps" ]
+if [ -z "$ExperimentName" ] || [ -z "$ModelID" ] || [ -z "$EnsembleMembers" ] || [ -z "$Steps" ]
 then
    echo "Some or all of the parameters are empty.";
    helpFunction
@@ -46,4 +46,4 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate WD_model
 
-srun python s13_write_predictions_iterative.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID +n_ensemble_members=$EnsembleMembers +n_steps=$Steps
+srun python s13_write_predictions_iterative.py +experiment=$ExperimentName +model_name=$ModelID +n_steps=$Steps

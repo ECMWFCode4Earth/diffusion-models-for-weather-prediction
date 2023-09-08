@@ -35,7 +35,7 @@ def plot_map(
     # remove white line
     field, lon_plot = add_cyclic_point(p_data, coord=lon)
     lo, la = np.meshgrid(lon_plot, lat)
-    ax.pcolormesh(
+    mesh = ax.pcolormesh(
         lo,
         la,
         field,
@@ -65,6 +65,7 @@ def plot_map(
             title,
             fontsize=plotting_config["TITLE_FONTSIZE"],
         )
+    return mesh
 
 
 def add_label_to_axes(ax, label, fontsize=None):
