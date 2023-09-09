@@ -1,6 +1,6 @@
-data: 
-  ds_format: zarr
-  paths: default_paths
+defaults:
+  - paths: default_paths
+  - _self_
 
 batchsize: 128
 shuffle_chunks: False
@@ -12,4 +12,4 @@ hydra:
   job:
     chdir: False
   run:
-    dir: ${paths.dir_HydraConfigs}/inference/${data.template}/${experiment}/${model_name}/${now:%Y-%m-%d_%H-%M-%S}
+    dir: ${paths.dir_HydraConfigs}/inference/${data.template}/${hydra.runtime.choices.experiment}/${model_name}/${now:%Y-%m-%d_%H-%M-%S}

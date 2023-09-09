@@ -16,7 +16,7 @@ from pytorch_lightning.callbacks.early_stopping import (
     EarlyStopping,
 )
 
-@hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/training", config_name="config")
+@hydra.main(version_base=None, config_path="./config", config_name="train")
 def main(config: DictConfig) -> None:
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     exp_name = hydra_cfg['runtime']['choices']['experiment']

@@ -25,15 +25,16 @@ def main(config: DictConfig) -> None:
     dir_name = hydra_cfg['runtime']['output_dir']  # the directory the hydra log is written to.
     dir_name = os.path.basename(os.path.normpath(dir_name))  # we only need the last part
 
+    experiment_name = hydra_cfg['runtime']['choices']['experiment']
     model_name = config.model_name  # we have to pass this to the bash file every time! (should contain a string).
     nens = config.n_ensemble_members  # we have to pass this to the bash file every time!
 
     ds_config = OmegaConf.load(f"{config.paths.dir_PreprocessedDatasets}/data/{config.data.template}/.hydra/config.yaml")
-    ml_config = OmegaConf.load(f"{config.paths.dir_PreprocessedDatasets}/training/{config.data.template}/{config.experiment}/{config.model_name}/.hydra/config.yaml")
+    ml_config = OmegaConf.load(f"{config.paths.dir_PreprocessedDatasets}/training/{config.data.template}/{experiment_name}/{config.model_name}/.hydra/config.yaml")
 
     model_output_dir = config.paths.dir_ModelOutput
 
-    model_load_dir = Path(f"{config.paths.dir_SavedModels}/{config.data.template}/{config.experiment}/{config.model_name}/lightning_logs/version_0/checkpoints/")
+    model_load_dir = Path(f"{config.paths.dir_SavedModels}/{config.data.template}/{experiment_name}/{config.model_name}/lightning_logs/version_0/checkpoints/")
 
     test_ds_path = f"{config.paths.dir_PreprocessedDatasets}{config.data.template}_test.zarr"
 
@@ -64,7 +65,7 @@ def main(config: DictConfig) -> None:
     out = torch.cat(out, dim=0)
     out = out.view(nens, -1, *out.shape[1:])
 
-    model_output_dir = os.path.join(model_output_dir, config.data.template, config.experiment, model_name, dir_name)
+    model_output_dir = os.path.join(model_output_dir, config.data.template, experiment_name, model_name, dir_name)
     create_dir(model_output_dir)
 
     # need the view to create axis for

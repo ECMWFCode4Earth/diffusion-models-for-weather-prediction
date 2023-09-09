@@ -16,7 +16,7 @@ from dm_zoo.diffusion.LFD_lightning import LatentForecastDiffusion
 from WD.datasets import Conditional_Dataset_Zarr_Iterable
 from WD.utils import check_devices, create_dir, AreaWeightedMSELoss
 
-@hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/training", config_name="config")
+@hydra.main(version_base=None, config_path="./config", config_name="train")
 
 def train_LFD(config: DictConfig) -> None:
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()

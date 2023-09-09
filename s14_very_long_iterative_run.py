@@ -20,7 +20,7 @@ import pytorch_lightning as pl
 
 
 
-@hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/inference", config_name="config")
+@hydra.main(version_base=None, config_path="./config", config_name="inference")
 def main(config: DictConfig) -> None:
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     dir_name = hydra_cfg['runtime']['output_dir']  # the directory the hydra log is written to.
@@ -28,13 +28,14 @@ def main(config: DictConfig) -> None:
 
     model_name = config.model_name  # we have to pass this to the bash file every time! (should contain a string of the date the run was started).
     nens = config.n_ensemble_members  # we have to pass this to the bash file every time!
+    experiment_name = hydra_cfg['runtime']['choices']['experiment']
 
     ds_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/data/{config.data.template}/.hydra/config.yaml")
-    ml_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/training/{config.data.template}/{config.experiment}/{config.model_name}/.hydra/config.yaml")
+    ml_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/training/{config.data.template}/{experiment_name}/{config.model_name}/.hydra/config.yaml")
 
     model_output_dir = config.paths.dir_ModelOutput
 
-    model_load_dir = Path(f"{config.paths.dir_SavedModels}/{config.data.template}/{config.experiment}/{config.model_name}/lightning_logs/version_0/checkpoints/")
+    model_load_dir = Path(f"{config.paths.dir_SavedModels}/{config.data.template}/{experiment_name}/{config.model_name}/lightning_logs/version_0/checkpoints/")
 
     test_ds_path = f"{config.paths.dir_PreprocessedDatasets}{config.data.template}_test.zarr"
 
@@ -82,7 +83,7 @@ def main(config: DictConfig) -> None:
 
     print(out.shape)
 
-    model_output_dir = os.path.join(model_output_dir, config.data.template, config.experiment, model_name, dir_name)
+    model_output_dir = os.path.join(model_output_dir, config.data.template, experiment_name, model_name, dir_name)
     create_dir(model_output_dir)
 
     gen_xr = create_xr_output_variables(
