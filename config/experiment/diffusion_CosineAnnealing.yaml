@@ -19,7 +19,7 @@ setup:
   sampler_name: DDPM
 
 pixel_diffusion:
-  lr_scheduler_name: Constant
+  lr_scheduler_name: CosineAnnealingLR
   num_diffusion_steps_inference: 200
   batch_size: 64
   learning_rate: 0.0001

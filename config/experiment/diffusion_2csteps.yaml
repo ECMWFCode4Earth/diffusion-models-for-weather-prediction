@@ -1,5 +1,5 @@
 data:
-  template: rasp_thuerey_z_500_3day
+  template: rasp_thuerey_z_500_3day_2csteps
   ds_format: zarr
   train_shuffle_chunks: True
   train_shuffle_in_chunks: True

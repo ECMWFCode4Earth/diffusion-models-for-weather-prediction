@@ -15,7 +15,7 @@ training:
   patience: 30
 
 setup:
-  loss_fn_name: AreaWeighted_MSE_Loss
+  loss_fn_name: MSE_Loss
   sampler_name: DDPM
 
 pixel_diffusion:

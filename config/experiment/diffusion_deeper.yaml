@@ -29,5 +29,5 @@ pixel_diffusion:
     noise_schedule: linear
     use_cyclical_padding: True
     num_diffusion_steps: 1000
-    dims_mults: [1,2,4,8]
+    dims_mults: [1,2,4,8,16]
     num_channels_base: 64

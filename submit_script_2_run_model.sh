@@ -2,7 +2,7 @@
 
 #SBATCH --job-name=RunCond
 #SBATCH --time=1-2:45:00
-#SBATCH -G 1 #  nvidia-a100:1
+#SBATCH -G nvidia-a100:1
 #SBATCH --mem-per-cpu=25G
 #SBATCH --cpus-per-task=1
 # output files
