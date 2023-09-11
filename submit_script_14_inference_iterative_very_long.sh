@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=EvalCondIterLong
-#SBATCH --time=0-07:45:00
+#SBATCH --time=0-12:45:00
 #SBATCH -G nvidia-a100:1
 #SBATCH --mem-per-cpu=20G
 # output files
@@ -12,15 +12,15 @@
 helpFunction()
 {
    echo ""
-   echo "Usage: $0 -t DatasetTemplateName -e ExperimentName -m modelName -n NEnsembleMembers -s NSteps"
-   echo -t "\t-m The name of the dataset template that should be used."
+   echo "Usage: $0 -t DatasetTemplateName -e ExperimentName -m modelName -n NEnsembleMembers"
+   echo -t "\t-t The name of the dataset template that should be used."
    echo -e "\t-e The name of the experiment conducted on the dataset."
    echo -e "\t-m The name of the model the predictions should be created with."
    echo -e "\t-n The number of ensemble members to be created."
    exit 1 # Exit script after printing help
 }
 
-while getopts "t:e:m:n:s:" opt
+while getopts "t:e:m:n:" opt
 do
    case "$opt" in
       t ) TemplateName="$OPTARG" ;;
