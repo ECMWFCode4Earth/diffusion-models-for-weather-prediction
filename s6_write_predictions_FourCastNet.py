@@ -1,41 +1,39 @@
-import argparse
 import os
 from pathlib import Path
+
+import torch
+from torch.utils.data import DataLoader
+import pytorch_lightning as pl
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-import torch
-from torch.utils.data import DataLoader
+from train_FourCastNet import FourCastNetDirect
 
-from dm_zoo.dff.PixelDiffusion import (
-    PixelDiffusionConditional,
-)
 from WD.datasets import Conditional_Dataset_Zarr_Iterable
 from WD.utils import create_dir
 from WD.io import create_xr_output_variables
 # from WD.io import load_config, write_config  # noqa F401
-import pytorch_lightning as pl
 
 
 
-@hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/inference", config_name="config")
+@hydra.main(version_base=None, config_path="./config", config_name="inference")
 def main(config: DictConfig) -> None:
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     dir_name = hydra_cfg['runtime']['output_dir']  # the directory the hydra log is written to.
     dir_name = os.path.basename(os.path.normpath(dir_name))  # we only need the last part
 
     model_name = config.model_name  # we have to pass this to the bash file every time! (should contain a string).
-    nens = config.n_ensemble_members  # we have to pass this to the bash file every time!
+    experiment_name = hydra_cfg['runtime']['choices']['experiment']
 
-    ds_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/{config.data.template}/.hydra/config.yaml")
-    ml_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/training/{config.data.template}/{config.experiment}/{config.model_name}/.hydra/config.yaml")
+    ds_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/data/{config.data.template}/.hydra/config.yaml")
+    ml_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/training/{config.data.template}/{experiment_name}/{config.model_name}/.hydra/config.yaml")
 
-    model_output_dir = config.paths.inference_dir
+    model_output_dir = config.paths.dir_ModelOutput
 
-    model_load_dir = Path(f"{config.paths.save_model_dir}/{config.data.template}/{config.experiment}/{config.model_name}/lightning_logs/version_0/checkpoints/")
+    model_load_dir = Path(f"{config.paths.dir_SavedModels}/{config.data.template}/{experiment_name}/{config.model_name}/lightning_logs/version_0/checkpoints/")
 
-    test_ds_path = f"{config.paths.data_dir}{config.data.template}_test.zarr"
+    test_ds_path = f"{config.paths.dir_PreprocessedDatasets}{config.data.template}_test.zarr"
 
     ds = Conditional_Dataset_Zarr_Iterable(test_ds_path, ds_config.template, shuffle_chunks=config.shuffle_chunks, 
                                                 shuffle_in_chunks=config.shuffle_in_chunks)
@@ -44,27 +42,25 @@ def main(config: DictConfig) -> None:
 
     conditioning_channels = ds.array_inputs.shape[1] * len(ds.conditioning_timesteps) + ds.array_constants.shape[0]
     generated_channels = ds.array_targets.shape[1]
+    img_size = ds.array_targets.shape[-2:]
 
-    restored_model = PixelDiffusionConditional.load_from_checkpoint(
+    restored_model = FourCastNetDirect.load_from_checkpoint(
         model_ckpt,
-        config=ml_config.experiment.pixel_diffusion,
-        conditioning_channels=conditioning_channels,
-        generated_channels=generated_channels,
-        loss_fn=config.loss_fn,
-        sampler=config.sampler,
+        config=ml_config.experiment.fourcastnet,
+        img_size=img_size,
+        in_channels=conditioning_channels,
+        out_channels=generated_channels,
+        loss_fn=config.loss_fn
     )
 
     dl = DataLoader(ds, batch_size=config.batchsize)
     trainer = pl.Trainer()
 
-    out = []
-    for i in range(nens):
-        out.extend(trainer.predict(restored_model, dl))
+    out = trainer.predict(restored_model, dl)
+    out = torch.cat(out, dim=0).unsqueeze(dim=0) # to keep compatible with the version that uses ensemble members
+    print(out.shape)
 
-    out = torch.cat(out, dim=0)
-    out = out.view(nens, -1, *out.shape[1:])
-
-    model_output_dir = os.path.join(model_output_dir, config.data.template, config.experiment, model_name, dir_name)
+    model_output_dir = os.path.join(model_output_dir, config.data.template, experiment_name, model_name, dir_name)
     create_dir(model_output_dir)
 
     # need the view to create axis for
@@ -72,18 +68,19 @@ def main(config: DictConfig) -> None:
 
     targets = torch.tensor(ds.data.targets.data[ds.start+ds.lead_time:ds.stop+ds.lead_time], dtype=torch.float).unsqueeze(dim=0)
 
+    print(targets.shape)
     gen_xr = create_xr_output_variables(
         out,
-        zarr_path=f"{config.paths.data_dir}/{config.data.template}_test.zarr/targets",
+        zarr_path=f"{config.paths.dir_PreprocessedDatasets}/{config.data.template}_test.zarr/targets",
         config=ds_config,
-        min_max_file_path=f"{config.paths.data_dir}/{config.data.template}_output_min_max.nc"
+        min_max_file_path=f"{config.paths.dir_PreprocessedDatasets}/{config.data.template}_output_min_max.nc"
     )
 
     target_xr = create_xr_output_variables(
         targets,
-        zarr_path=f"{config.paths.data_dir}/{config.data.template}_test.zarr/targets",
+        zarr_path=f"{config.paths.dir_PreprocessedDatasets}/{config.data.template}_test.zarr/targets",
         config=ds_config,
-        min_max_file_path=f"{config.paths.data_dir}/{config.data.template}_output_min_max.nc"
+        min_max_file_path=f"{config.paths.dir_PreprocessedDatasets}/{config.data.template}_output_min_max.nc"
     )
 
     gen_dir = os.path.join(model_output_dir, "gen.nc")

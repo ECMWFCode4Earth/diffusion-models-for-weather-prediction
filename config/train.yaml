@@ -1,0 +1,9 @@
+defaults:
+  - paths: default_paths
+  - _self_
+  
+hydra:
+  job:
+    chdir: False
+  run:
+    dir: ${paths.dir_HydraConfigs}/training/${experiment.data.template}/${hydra.runtime.choices.experiment}/${now:%Y-%m-%d_%H-%M-%S}

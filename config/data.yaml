@@ -1,0 +1,13 @@
+defaults:
+  - ds_format: zarr
+  - paths: default_paths
+  - _self_
+
+template_name: ${hydra.runtime.choices.template}
+
+hydra:
+  job:
+    chdir: False
+  run:
+    dir: ${paths.dir_HydraConfigs}/data/${template_name}
+

@@ -168,7 +168,7 @@ def create_xr_output_variables(
     # loading config information:
 
     spatial_resolution = config.template.data_specs.spatial_resolution
-    root_dir = config.paths.data_input_dir
+    root_dir = config.paths.dir_PreprocessedDatasets
     lead_time = config.template.data_specs.lead_time
     max_conditioning_time_steps = max(abs(np.array(config.template.data_specs.conditioning_time_step)))
     # load time:
@@ -198,9 +198,18 @@ def create_xr_output_variables(
         )
     ).coords
     ds.coords.update(coords)
-    ds = ds.expand_dims({"lead_time": 1}).assign_coords(
-        {"lead_time": [lead_time]}
-    )
+
+    if data.ndim == 5:  # (ensemble_member, bs, channels, lat, lon)
+        ds = ds.expand_dims({"lead_time": 1}).assign_coords(
+            {"lead_time": [lead_time]}
+        )
+    elif data.ndim == 6:  # (ensemble_member, bs, len_traj, channels, lat, lon)
+        ds = ds.expand_dims({"lead_time": 1}).assign_coords(
+            {"lead_time": [(i+1)*lead_time for i in range(data.shape[2])]}
+        )
+    else:
+        raise ValueError("Invalid number of dimensions of input data.")     
+       
     ds = ds.expand_dims({"ensemble_member": data.shape[0]}).assign_coords(
         {"ensemble_member": np.arange(data.shape[0])}
     )
@@ -219,17 +228,32 @@ def create_xr_output_variables(
         if "_max" in name
     ]
 
-    for i in range(data.shape[2]):
-        ds[var_names[i]] = xr.DataArray(
-            data[:, :, i : i + 1, ...],  # noqa E203
-            dims=("ensemble_member", "init_time", "lead_time", "lat", "lon"),
-            coords={
-                "ensemble_member": ds.ensemble_member,
-                "lat": ds.lat,
-                "lon": ds.lon,
-                "lead_time": ds.lead_time,
-                "init_time": ds.init_time,
-            },
-        )
-
+    if data.ndim == 5:  # (ensemble_member, bs, channels, lat, lon)
+        for i in range(data.shape[-3]):
+            ds[var_names[i]] = xr.DataArray(
+                data[..., i : i + 1, :, :],
+                dims=("ensemble_member", "init_time", "lead_time", "lat", "lon"),
+                coords={
+                    "ensemble_member": ds.ensemble_member,
+                    "lat": ds.lat,
+                    "lon": ds.lon,
+                    "lead_time": ds.lead_time,
+                    "init_time": ds.init_time,
+                },
+            )
+    elif data.ndim == 6:  # (ensemble_member, bs, len_traj, channels, lat, lon)
+        for i in range(data.shape[-3]):
+            ds[var_names[i]] = xr.DataArray(
+                data[..., i, :, :],
+                dims=("ensemble_member", "init_time", "lead_time", "lat", "lon"),
+                coords={
+                    "ensemble_member": ds.ensemble_member,
+                    "lat": ds.lat,
+                    "lon": ds.lon,
+                    "lead_time": ds.lead_time,
+                    "init_time": ds.init_time,
+                },
+            )        
+    else:
+        raise ValueError("Invalid number of dimensions of input data.")    
     return undo_scaling(ds, ds_min_max)

@@ -17,7 +17,7 @@ from WD.io import create_xr_output_variables
 from WD.utils import AreaWeightedMSELoss
 
 
-@hydra.main(version_base=None, config_path="/data/compoundx/WeatherDiff/config/inference", config_name="config")
+@hydra.main(version_base=None, config_path="./config", config_name="inference")
 def LFD_inference(config: DictConfig) -> None:
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     dir_name = hydra_cfg['runtime']['output_dir']  # the directory the hydra log is written to.
@@ -25,14 +25,16 @@ def LFD_inference(config: DictConfig) -> None:
 
     model_name = config.model_name  # we have to pass this to the bash file every time! (should contain a string).
     nens = config.n_ensemble_members
-    ds_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/{config.data.template}/.hydra/config.yaml")
-    ml_config = OmegaConf.load(f"{config.paths.hydra_config_dir}/training/{config.data.template}/{config.experiment}/{config.model_name}/.hydra/config.yaml")
+    experiment_name = hydra_cfg['runtime']['choices']['experiment']
 
-    model_output_dir = config.paths.inference_dir
+    ds_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/data/{config.data.template}/.hydra/config.yaml")
+    ml_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/training/{config.data.template}/{experiment_name}/{config.model_name}/.hydra/config.yaml")
 
-    model_load_dir = Path(f"{config.paths.save_model_dir}/{config.data.template}/{config.experiment}/{config.model_name}/lightning_logs/version_0/checkpoints/")
+    model_output_dir = config.paths.dir_ModelOutput
 
-    test_ds_path = f"{config.paths.data_dir}{config.data.template}_test.zarr"
+    model_load_dir = Path(f"{config.paths.dir_SavedModels}/{config.data.template}/{experiment_name}/{config.model_name}/lightning_logs/version_0/checkpoints/")
+
+    test_ds_path = f"{config.paths.dir_PreprocessedDatasets}{config.data.template}_test.zarr"
 
     ds = Conditional_Dataset_Zarr_Iterable(test_ds_path, ds_config.template, shuffle_chunks=config.shuffle_chunks, 
                                                 shuffle_in_chunks=config.shuffle_in_chunks)
@@ -80,7 +82,7 @@ def LFD_inference(config: DictConfig) -> None:
     out = torch.cat(out, dim=0) # to keep compatible with the version that uses ensemble members
 
     print(out.shape)
-    model_output_dir = os.path.join(model_output_dir, config.data.template, config.experiment, model_name, dir_name)
+    model_output_dir = os.path.join(model_output_dir, config.data.template, experiment_name, model_name, dir_name)
     create_dir(model_output_dir)
 
     # need the view to create axis for
@@ -91,17 +93,17 @@ def LFD_inference(config: DictConfig) -> None:
     
     gen_xr = create_xr_output_variables(
         out,
-        zarr_path=f"{config.paths.data_dir}/{config.data.template}_test.zarr/targets",
+        zarr_path=f"{config.paths.dir_PreprocessedDatasets}/{config.data.template}_test.zarr/targets",
         config=ds_config,
-        min_max_file_path=f"{config.paths.data_dir}/{config.data.template}_output_min_max.nc"
+        min_max_file_path=f"{config.paths.dir_PreprocessedDatasets}/{config.data.template}_output_min_max.nc"
     )
 
 
     target_xr = create_xr_output_variables(
         targets,
-        zarr_path=f"{config.paths.data_dir}/{config.data.template}_test.zarr/targets",
+        zarr_path=f"{config.paths.dir_PreprocessedDatasets}/{config.data.template}_test.zarr/targets",
         config=ds_config,
-        min_max_file_path=f"{config.paths.data_dir}/{config.data.template}_output_min_max.nc"
+        min_max_file_path=f"{config.paths.dir_PreprocessedDatasets}/{config.data.template}_output_min_max.nc"
     )
 
     gen_dir = os.path.join(model_output_dir, "gen.nc")
