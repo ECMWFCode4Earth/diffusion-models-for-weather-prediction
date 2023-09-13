@@ -12,7 +12,7 @@ training:
   limit_val_batches: 10
   accelerator: "cuda"
   devices: 1
-  patience: 30
+  patience: 10
 
 setup:
   loss_fn_name: MSE_Loss

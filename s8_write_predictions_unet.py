@@ -25,8 +25,8 @@ def main(config: DictConfig) -> None:
     experiment_name = hydra_cfg['runtime']['choices']['experiment']
     model_name = config.model_name  # we have to pass this to the bash file every time! (should contain a string).
 
-    ds_config = OmegaConf.load(f"{config.paths.dir_PreprocessedDatasets}/data/{config.data.template}/.hydra/config.yaml")
-    ml_config = OmegaConf.load(f"{config.paths.dir_PreprocessedDatasets}/training/{config.data.template}/{experiment_name}/{config.model_name}/.hydra/config.yaml")
+    ds_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/data/{config.data.template}/.hydra/config.yaml")
+    ml_config = OmegaConf.load(f"{config.paths.dir_HydraConfigs}/training/{config.data.template}/{experiment_name}/{config.model_name}/.hydra/config.yaml")
 
     model_output_dir = config.paths.dir_ModelOutput
 

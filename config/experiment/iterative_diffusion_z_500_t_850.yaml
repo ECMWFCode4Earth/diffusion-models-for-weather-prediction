@@ -1,5 +1,5 @@
 data:
-  template: rasp_thuerey_z_500_3day
+  template: iterative_z_500_t_850
   ds_format: zarr
   train_shuffle_chunks: True
   train_shuffle_in_chunks: True
@@ -9,7 +9,7 @@ data:
 training:
   max_steps: 5000000
   ema_decay: 0.9999
-  limit_val_batches: 10
+  limit_val_batches: 20
   accelerator: "cuda"
   devices: 1
   patience: 10
@@ -19,7 +19,7 @@ setup:
   sampler_name: DDPM
 
 pixel_diffusion:
-  lr_scheduler_name: Constant
+  lr_scheduler_name: CosineAnnealingLR
   num_diffusion_steps_inference: 200
   batch_size: 64
   learning_rate: 0.0001
@@ -30,4 +30,4 @@ pixel_diffusion:
     use_cyclical_padding: True
     num_diffusion_steps: 1000
     dims_mults: [1,2,4,8]
-    num_channels_base: 256
+    num_channels_base: 64
