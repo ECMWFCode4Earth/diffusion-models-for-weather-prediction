@@ -2,7 +2,6 @@ import hydra
 from omegaconf import DictConfig
 
 from WD.datasets import write_conditional_datasets
-from WD.utils import generate_uid
 
 @hydra.main(version_base=None, config_path="./config", config_name="data")
 def main(conf: DictConfig) -> None:

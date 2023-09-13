@@ -14,7 +14,6 @@ from dm_zoo.dff.PixelDiffusion import (
 from WD.datasets import Conditional_Dataset_Zarr_Iterable
 from WD.utils import create_dir
 from WD.io import create_xr_output_variables
-# from WD.io import load_config, write_config  # noqa F401
 import pytorch_lightning as pl
 
 

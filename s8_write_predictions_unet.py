@@ -10,10 +10,9 @@ from torch.utils.data import DataLoader
 from dm_zoo.dff.UNetRegression import (
     UNetRegression,
 )
-from WD.datasets import Conditional_Dataset_Zarr_Iterable, custom_collate
+from WD.datasets import Conditional_Dataset_Zarr_Iterable
 from WD.utils import create_dir
-from WD.io import load_config, create_xr_output_variables
-from WD.io import write_config  # noqa F401
+from WD.io import create_xr_output_variables
 import pytorch_lightning as pl
 
 
@@ -43,8 +42,9 @@ def main(config: DictConfig) -> None:
     conditioning_channels = ds.array_inputs.shape[1] * len(ds.conditioning_timesteps) + ds.array_constants.shape[0]
     generated_channels = ds.array_targets.shape[1]
 
-    UNetRegression.load_from_checkpoint(
-        config.experiment.unet_regression,
+    restored_model = UNetRegression.load_from_checkpoint(
+        model_ckpt,
+        config=ml_config.experiment.unet_regression,
         generated_channels=generated_channels,
         condition_channels=conditioning_channels,
         loss_fn=config.loss_fn,
