@@ -1,4 +1,4 @@
-#reference: https://github.com/NVlabs/AFNO-transformer
+# reference: https://github.com/NVlabs/AFNO-transformer
 # adapted from: https://github.com/NVlabs/FourCastNet/blob/master/networks/afnonet.py
 
 from functools import partial
