@@ -72,6 +72,7 @@ def main(config: DictConfig) -> None:
         trajectories = torch.zeros(size=(input[1].shape[0], n_steps, *input[1].shape[1:]))
         ts = []
         for step in range(n_steps):
+            print(step)
             restored_model.eval()
             with torch.no_grad():  
                 res = restored_model.forward(input)  # is this a list of tensors or a tensor?
