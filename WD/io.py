@@ -168,7 +168,7 @@ def create_xr_output_variables(
     # loading config information:
 
     spatial_resolution = config.template.data_specs.spatial_resolution
-    root_dir = config.paths.dir_PreprocessedDatasets
+    root_dir = config.paths.dir_WeatherBench
     lead_time = config.template.data_specs.lead_time
     max_conditioning_time_steps = max(abs(np.array(config.template.data_specs.conditioning_time_step)))
     # load time:

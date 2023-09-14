@@ -56,7 +56,7 @@ def main(config: DictConfig) -> None:
     out = trainer.predict(restored_model, dl)
 
     out = torch.cat(out, dim=0)
-    out = out.view(1, out.shape[1:])
+    out = out.view(1, *out.shape)
     print(out.shape)
 
     model_output_dir = os.path.join(model_output_dir, config.data.template, experiment_name, model_name, dir_name)

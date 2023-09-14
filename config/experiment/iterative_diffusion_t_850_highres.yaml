@@ -1,5 +1,5 @@
 data:
-  template: iterative_z_500_t_850
+  template: iterative_t_850_highres
   ds_format: zarr
   train_shuffle_chunks: True
   train_shuffle_in_chunks: True

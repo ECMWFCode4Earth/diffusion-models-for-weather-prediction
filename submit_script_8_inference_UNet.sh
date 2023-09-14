@@ -2,7 +2,7 @@
 
 #SBATCH --job-name=EvalUNet
 #SBATCH --time=0-03:45:00
-#SBATCH -G nvidia-a100:1
+#SBATCH -G 1 # nvidia-a100:1
 #SBATCH --mem-per-cpu=16G
 # output files
 #SBATCH -o /data/compoundx/WeatherDiff/job_log/%x-%u-%j.out

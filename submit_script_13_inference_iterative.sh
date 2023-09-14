@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=EvalCondIter
-#SBATCH --time=0-07:45:00
+#SBATCH --time=1-07:45:00
 #SBATCH -G nvidia-a100:1
 #SBATCH --mem-per-cpu=20G
 # output files

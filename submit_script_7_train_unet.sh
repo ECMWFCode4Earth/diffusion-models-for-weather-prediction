@@ -2,7 +2,7 @@
 
 #SBATCH --job-name=TrainUnet
 #SBATCH --time=0-23:45:00
-#SBATCH -G nvidia-a100:1
+#SBATCH -G 1  # nvidia-a100:1
 #SBATCH --mem-per-cpu=16G
 #SBATCH --cpus-per-task=4
 # output files
