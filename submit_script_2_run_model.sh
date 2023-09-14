@@ -39,4 +39,4 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate WD_model
 
-srun python s2_train_conditional_pixel_diffusion.py +experiment=$experiment_name
+python s2_train_conditional_pixel_diffusion.py +experiment=$experiment_name

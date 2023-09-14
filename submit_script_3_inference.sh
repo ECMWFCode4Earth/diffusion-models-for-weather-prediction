@@ -44,4 +44,4 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate WD_model
 
-srun python s3_write_predictions_conditional_pixel_diffusion.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID +n_ensemble_members=$EnsembleMembers
+python s3_write_predictions_conditional_pixel_diffusion.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID +n_ensemble_members=$EnsembleMembers

@@ -39,5 +39,5 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate WD_model
 
-srun python s5_train_FourCastNet.py +experiment=$experiment_name
+python s5_train_FourCastNet.py +experiment=$experiment_name
 

@@ -44,4 +44,4 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate WD_model
 
-srun python s14_very_long_iterative_run.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID +n_ensemble_members=$EnsembleMembers
+python s14_very_long_iterative_run.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID +n_ensemble_members=$EnsembleMembers

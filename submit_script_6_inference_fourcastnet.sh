@@ -42,4 +42,4 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate WD_model
 
-srun python s6_write_predictions_FourCastNet.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID
+python s6_write_predictions_FourCastNet.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID

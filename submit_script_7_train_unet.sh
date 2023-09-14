@@ -38,5 +38,5 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate WD_model
 
-srun python s7_train_unet.py +experiment=$experiment_name
+python s7_train_unet.py +experiment=$experiment_name
 

@@ -47,4 +47,4 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate WD_model
 
-srun python s13_write_predictions_iterative.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID +n_ensemble_members=$EnsembleMembers +n_steps=$Steps
+python s13_write_predictions_iterative.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID +n_ensemble_members=$EnsembleMembers +n_steps=$Steps

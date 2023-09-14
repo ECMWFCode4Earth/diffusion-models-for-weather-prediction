@@ -42,4 +42,4 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate TORCH311
 
-srun python s4_train_val_test.py -did $DatasetID -mid $ModelID -nens $EnsembleMembers
+python s4_train_val_test.py -did $DatasetID -mid $ModelID -nens $EnsembleMembers

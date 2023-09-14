@@ -38,4 +38,4 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate WD_data
 
-srun python s1_write_dataset.py +template=$TemplateName
+python s1_write_dataset.py +template=$TemplateName

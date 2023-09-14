@@ -39,4 +39,4 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate TORCH311
 
-srun python s11_train_LFD.py +experiment=$experiment_name
+python s11_train_LFD.py +experiment=$experiment_name

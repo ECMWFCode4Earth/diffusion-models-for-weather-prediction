@@ -44,4 +44,4 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate TORCH311
 
-srun python s12_write_predictions_LFD.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID +n_ensemble_members=$EnsembleMembers
+python s12_write_predictions_LFD.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID +n_ensemble_members=$EnsembleMembers

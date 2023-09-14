@@ -42,5 +42,5 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate WD_model
 
-srun python s8_write_predictions_unet.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID
+python s8_write_predictions_unet.py +data.template=$TemplateName +experiment=$ExperimentName +model_name=$ModelID
 

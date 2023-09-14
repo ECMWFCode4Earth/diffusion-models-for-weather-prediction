@@ -39,5 +39,5 @@ source $EBROOTANACONDA3/etc/profile.d/conda.sh
 
 conda activate TORCH311
 
-srun python s9_train_vae.py +experiment=$experiment_name
+python s9_train_vae.py +experiment=$experiment_name
 
