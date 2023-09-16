@@ -1,0 +1,38 @@
+paths:
+  dir_WeatherBench: /data/compoundx/WeatherBench/
+  dir_PreprocessedDatasets: /data/compoundx/WeatherDiff/model_input/
+  dir_SavedModels: /data/compoundx/WeatherDiff/saved_model/
+  dir_HydraConfigs: /data/compoundx/WeatherDiff/config_logs/
+  dir_ModelOutput: /data/compoundx/WeatherDiff/model_output/
+experiment:
+  data:
+    template: rasp_thuerey_z_500_3day
+    ds_format: zarr
+    train_shuffle_chunks: true
+    train_shuffle_in_chunks: true
+    val_shuffle_chunks: false
+    val_shuffle_in_chunks: false
+  setup:
+    loss_fn_name: AreaWeighted_MSE_Loss
+  fourcastnet:
+    lr_scheduler_name: Constant
+    batch_size: 64
+    learning_rate: 0.0005
+    num_workers: 1
+    afno_net:
+      patch_size: 2
+      depth: 8
+      embed_dim: 256
+      num_blocks: 8
+      drop_path_rate: 0.0
+      drop_rate: 0.0
+      mlp_ratio: 4.0
+      sparsity_threshold: 0.01
+      hard_thresholding_fraction: 1.0
+  training:
+    max_steps: 5000000
+    ema_decay: 0.9999
+    limit_val_batches: 10
+    accelerator: cuda
+    devices: -1
+    patience: 10

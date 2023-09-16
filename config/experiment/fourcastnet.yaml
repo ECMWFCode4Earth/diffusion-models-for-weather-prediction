@@ -1,5 +1,5 @@
 data:
-  template: geopotential_500
+  template: rasp_thuerey_z_500_3day
   ds_format: zarr
   train_shuffle_chunks: True
   train_shuffle_in_chunks: True
@@ -7,13 +7,13 @@ data:
   val_shuffle_in_chunks: False
 
 setup:
-  loss_fn_name: MSE_Loss
+  loss_fn_name: AreaWeighted_MSE_Loss
 
 fourcastnet:
-  lr_scheduler_name: CosineAnnealingLR
+  lr_scheduler_name: Constant
   batch_size: 64
   learning_rate: 0.0005
-  num_workers: 2
+  num_workers: 1
   afno_net:
     patch_size: 2
     depth: 8

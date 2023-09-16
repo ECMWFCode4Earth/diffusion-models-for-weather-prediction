@@ -1,4 +1,4 @@
-name: WD_eval  # to be used for evaluation purposes: ie. plotting, computing metrics, ...
+name: WD_eval_new  # to be used for evaluation purposes: ie. plotting, computing metrics, ...
 channels:
   - conda-forge
   - defaults
@@ -7,6 +7,7 @@ dependencies:
   - esmpy=8.0.1
   - xesmf=0.3.0
   - dask
+  - pyshtools
   - ipykernel
   - netcdf4
   - matplotlib

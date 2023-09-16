@@ -24,7 +24,7 @@ from pytorch_lightning.callbacks.early_stopping import (
 )
 
 
-@hydra.main(version_base=None, config_path="./config", config_name="inference")
+@hydra.main(version_base=None, config_path="./config", config_name="train")
 def main(config: DictConfig) -> None:
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     dir_name = hydra_cfg['runtime']['output_dir']  # the directory the hydra log is written to.
