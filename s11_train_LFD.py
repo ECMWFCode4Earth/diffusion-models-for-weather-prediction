@@ -50,6 +50,7 @@ def train_LFD(config: DictConfig) -> None:
     else:
         raise NotImplementedError("Invalid loss function.")
 
+    print(config.experiment.model.diffusion.sampler_name)
     if config.experiment.model.diffusion.sampler_name == "DDPM":  # this is the default case
         sampler = None
     else:

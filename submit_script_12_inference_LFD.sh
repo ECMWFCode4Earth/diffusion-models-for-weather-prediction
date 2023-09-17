@@ -13,7 +13,7 @@ helpFunction()
 {
    echo ""
    echo "Usage: $0 -t DatasetTemplateName -e ExperimentName -m modelName -n NEnsembleMembers"
-   echo -t "\t-m The name of the dataset template that should be used."
+   echo -t "\t-t The name of the dataset template that should be used."
    echo -e "\t-e The name of the experiment conducted on the dataset."
    echo -e "\t-m The name of the model the predictions should be created with."
    echo -e "\t-n The number of ensemble members to be created."
