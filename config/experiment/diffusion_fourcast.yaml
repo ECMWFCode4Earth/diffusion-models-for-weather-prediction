@@ -1,5 +1,5 @@
 data:
-  template: rasp_thuerey_highres_z_500_3day
+  template: rasp_thuerey_z_500_3day
   ds_format: zarr
   train_shuffle_chunks: True
   train_shuffle_in_chunks: True
@@ -18,7 +18,7 @@ model:
   loss_fn_name: AreaWeighted_MSE_Loss
   lr_scheduler_name: ReduceLROnPlateau
   batch_size: 64
-  learning_rate: 0.00005
+  learning_rate: 0.00001
   num_workers: 1
 
   diffusion:

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=LFD
-#SBATCH --time=1-10:35:00
+#SBATCH --time=3-10:35:00
 #SBATCH -G nvidia-a100:1
 #SBATCH --mem-per-cpu=64G
 #SBATCH --cpus-per-task=1
