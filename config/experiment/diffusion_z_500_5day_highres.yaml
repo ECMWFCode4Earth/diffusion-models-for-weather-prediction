@@ -22,7 +22,7 @@ pixel_diffusion:
   lr_scheduler_name: Constant
   num_diffusion_steps_inference: 200
   batch_size: 64
-  learning_rate: 0.0001
+  learning_rate: 0.00003
   num_workers: 1
   denoising_diffusion_process:
     unet_type: UnetConvNextBlock

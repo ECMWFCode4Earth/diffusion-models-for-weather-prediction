@@ -3,7 +3,7 @@
 #SBATCH --job-name=EvalCondIter
 #SBATCH --time=1-07:45:00
 #SBATCH -G nvidia-a100:1
-#SBATCH --mem-per-cpu=20G
+#SBATCH --mem-per-cpu=35G
 # output files
 #SBATCH -o /data/compoundx/WeatherDiff/job_log/%x-%u-%j.out
 #SBATCH -e /data/compoundx/WeatherDiff/job_log/%x-%u-%j.err
