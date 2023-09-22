@@ -43,11 +43,10 @@ Clone the `<subodules>` | Make sure you have access to them. Then:
 ### Workflow:
 The workflow to train and predict with the diffusion models is as follows:
 - Dataset creation: Creating a preprocessed dataset from the raw WeatherBench dataset. This can be obtained with `s1_write_dataset.py` and `submit_script_1_dataset_creation.sh` (if submitting jobscripts is required)
-  - configurations for the dataset creation process and other parameter choices in the process are managed with [hydra](https://hydra.cc). The name of a configuration ("template") has to be selected when running the script, e.g. `python s1_write_data +template=<name_of_template>`. The corresponding file `<name_of_template>.yaml` should be contained in the `config/template` directory.
-- Training a model: Select the appropriate script (e.g. `s2_train_pixel_diffusion`). Configuration choices are made in the `config/train.yaml` file, and experiment specific choices (model architecture, dataset, ...) are listed in the files in the `/config/experiment` directory. A experiment name has to be given, analogously the dataset creation. A model can for example be trained by `python s2_train_pixel_diffusion +experiment=<name_of_experiment>`.
-    
-
-
+  - configurations for the dataset creation process and other parameter choices in the process are managed with [hydra](https://hydra.cc). The name of a configuration ("template") has to be selected when running the script, e.g. `python s1_write_data.py +template=<name_of_template>`. The corresponding file `<name_of_template>.yaml` should be contained in the `config/template` directory.
+- Training a model: Select the appropriate script (e.g. `s2_train_pixel_diffusion.py`). Configuration choices are made in the `config/train.yaml` file, and experiment specific choices (model architecture, dataset, ...) are listed in the files in the `/config/experiment` directory. A experiment name has to be given, analogously the dataset creation. A model can for example be trained by `python s2_train_pixel_diffusion.py +experiment=<name_of_experiment>`. The selected configuration, including the experiment get logged to `dir_HydraConfigs`.
+  - The training progress can be monitored with tensorbaord.
+- Once the training is finished, predictions can be written with the trained models. Selecting an appropriate script (e.g. `s3_write_predictions_conditional_pixel_diffusion.py`), predictions can be made as follows `python s3_write_predictions_conditional_pixel_diffusion.py +data.template=<name_of_template> +experiment=<name_of_experiment> +model_name=<name_of_the_model_run> n_ensemble_members=<number_of_ensemble_members>`. Here `<name_of_experiment>` and `<name_of_experiment>` are the choices made when creating the employed dataset and training the model. By default, `<name_of_the_model_run>` should be the time that the model run was started. To find this information, have a look at the logged configurations for training in `dir_HydraConfigs/training`. As the name suggests, `<number_of_ensemble_members>` selects, how many ensemble predictions should be produces simultaneously. The predictions and ground truth get rescaled and saved in `.nc` files in `dir_ModelOutput`. They can be opened with [xarray](https://docs.xarray.dev/en/stable), and contain data of the following dimensionality: `(ensemble_member, init_time, lead_time, lat, lon)`. `init_time` is the "starting/initialization" time of the forecast, and `lead_time` specifies how far one wants to predict into the future.
 
 ## Contributing
 Script on guidelines for contributions will be added in the future.
@@ -65,6 +64,6 @@ Mentors:
 This project is licensed under the [Apache 2.0 License](https://github.com/melioristic/benchmark/blob/main/LICENSE). The submodules contain code from external sources and are subject to the licenses included in these submodules.
 
 ## Project status
-Under active developement.
+Code4Earth project finished.
 
 
