@@ -8,7 +8,7 @@ import pytorch_lightning as pl
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-from train_FourCastNet import FourCastNetDirect
+from dm_zoo.fourcast.train_FourCastNet import FourCastNetDirect
 
 from WD.datasets import Conditional_Dataset_Zarr_Iterable
 from WD.utils import create_dir

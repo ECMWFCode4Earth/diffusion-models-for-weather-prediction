@@ -14,7 +14,7 @@ import torch
 
 import os
 
-from train_FourCastNet import FourCastNetDirect
+from dm_zoo.fourcast.train_FourCastNet import FourCastNetDirect
 
 from WD.utils import check_devices, create_dir, AreaWeightedMSELoss
 
