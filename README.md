@@ -26,7 +26,7 @@ Clone the `<subodules>` | Make sure you have access to them. Then:
 2. `git submodule update`
 
 ### Data download:
-- Our code requires the WeatherBench to be downloaded as described in their [repository](https://github.com/pangeo-data/WeatherBench/tree/master). We tested the 5.625° and 2.8125° resolutions.
+- Our code requires the WeatherBench to be downloaded as described in [this repository](https://github.com/pangeo-data/WeatherBench/tree/master). We tested the 5.625° and 2.8125° resolutions.
 
 ### Setup:
 - Setting up conda environments. We create 3 environments, the requirements of each of them are contained in a .yml file. Run `conda env create -f <env_config_file>` to create each environment.
