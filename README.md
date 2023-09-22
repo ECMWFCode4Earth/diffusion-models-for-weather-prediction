@@ -33,7 +33,7 @@ Clone the `<subodules>` | Make sure you have access to them. Then:
   - `env_data.yml` creates an environment `WD_data` that is used to preprocess the data
   - `env_model.yml` creates an environment `WD_model` that is used to train and make prediction with machine learning models.
   - `env_eval.yml` creates an environment `WD_eval` with packages required to analyse and plot results.
-- The workflow requires paths being set for a few different directories. These paths are specified in the `config/paths/` directory. These paths are the following:
+- The workflow requires paths being set for a few different directories. These paths are specified in the `config/paths/` directory and make the following choices:
   - `dir_WeatherBench`: Directory the weatherBench dataset was downloaded to.
   - `dir_PreprocessedDatasets`: Preprocessed datasets get stored here
   - `dir_SavedModels`: Checkpoints and tensorboard logs are stored here
