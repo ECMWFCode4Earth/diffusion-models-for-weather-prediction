@@ -1,6 +1,6 @@
 # WeatherDiff
 
-![image](https://github.com/ECMWFCode4Earth/diffusion-models-for-weather-prediction/assets/44346640/2210556e-953a-46ac-aecf-809ce6c8cf65)
+![image](https://github.com/ECMWFCode4Earth/diffusion-models-for-weather-prediction/blob/main/images/z_500_lowres.gif)
 
 ## Description
 This Code4Earth challenge explores the potential of Diffusion Models for weather prediction, more specificially we test it on the [WeatherBench](https://github.com/pangeo-data/WeatherBench) benchmark data set.
