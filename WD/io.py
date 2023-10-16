@@ -180,6 +180,7 @@ def create_xr_output_variables(
     assert os.path.isfile(
         os.path.join(
             root_dir,
+            spatial_resolution,
             "constants/constants_{}.nc".format(spatial_resolution),
         )
     ), (
@@ -187,6 +188,7 @@ def create_xr_output_variables(
         " exist.".format(
             os.path.join(
                 root_dir,
+                spatial_resolution,
                 "constants/constants_{}.nc".format(spatial_resolution),
             )
         )
@@ -194,6 +196,7 @@ def create_xr_output_variables(
     coords = xr.open_dataset(
         os.path.join(
             root_dir,
+            spatial_resolution,
             "constants/constants_{}.nc".format(spatial_resolution),
         )
     ).coords

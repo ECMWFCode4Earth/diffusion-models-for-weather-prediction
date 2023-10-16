@@ -31,6 +31,7 @@ def open_datasets(
     for foldername, var_config in variables.items():
         path = os.path.join(
             root_dir,
+            spatial_resolution,
             foldername,
             "*_{}.nc".format(spatial_resolution),
         )
@@ -120,6 +121,7 @@ def open_constant_datasets(
     ds_constants = xr.open_dataset(
         os.path.join(
             root_dir,
+            spatial_resolution,
             "constants",
             "constants_{}.nc".format(spatial_resolution),
         )
