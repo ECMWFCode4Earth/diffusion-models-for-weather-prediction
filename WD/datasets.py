@@ -122,7 +122,7 @@ def open_constant_datasets(
         os.path.join(
             root_dir,
             spatial_resolution,
-            "constants_{}.nc".format(spatial_resolution),
+            "constants.nc",
         )
     )
 
