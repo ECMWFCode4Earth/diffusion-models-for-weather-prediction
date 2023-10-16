@@ -181,7 +181,7 @@ def create_xr_output_variables(
         os.path.join(
             root_dir,
             spatial_resolution,
-            "constants/constants_{}.nc".format(spatial_resolution),
+            "constants_{}.nc".format(spatial_resolution),
         )
     ), (
         "The file {} is required to extract the coordinates, but doesn't"
@@ -189,7 +189,7 @@ def create_xr_output_variables(
             os.path.join(
                 root_dir,
                 spatial_resolution,
-                "constants/constants_{}.nc".format(spatial_resolution),
+                "constants_{}.nc".format(spatial_resolution),
             )
         )
     )
@@ -197,7 +197,7 @@ def create_xr_output_variables(
         os.path.join(
             root_dir,
             spatial_resolution,
-            "constants/constants_{}.nc".format(spatial_resolution),
+            "constants_{}.nc".format(spatial_resolution),
         )
     ).coords
     ds.coords.update(coords)

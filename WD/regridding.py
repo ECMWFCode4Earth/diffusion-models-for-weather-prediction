@@ -65,6 +65,6 @@ def regrid_to_res(ds_in:xr.Dataset, out_res: str, weatherbench_path:str="/data/c
 
     assert "deg" in out_res, "Resolution specification must be of the type 1.2345deg"
     
-    ds_res = xr.open_dataset("{}/{}/constants/constants_{}.nc".format(weatherbench_path, out_res, out_res))
+    ds_res = xr.open_dataset("{}/{}/constants_{}.nc".format(weatherbench_path, out_res, out_res))
 
     return regrid(ds_in, ds_res, *args, **kwargs)
