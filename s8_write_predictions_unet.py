@@ -13,7 +13,7 @@ from dm_zoo.dff.UNetRegression import (
 from WD.datasets import Conditional_Dataset_Zarr_Iterable
 from WD.utils import create_dir
 from WD.io import create_xr_output_variables
-import pytorch_lightning as pl
+import lightning as L
 
 
 @hydra.main(version_base=None, config_path="./config", config_name="inference")
@@ -51,7 +51,7 @@ def main(config: DictConfig) -> None:
     )
 
     dl = DataLoader(ds, batch_size=config.batchsize)
-    trainer = pl.Trainer()
+    trainer = L.Trainer()
 
     out = trainer.predict(restored_model, dl)
 

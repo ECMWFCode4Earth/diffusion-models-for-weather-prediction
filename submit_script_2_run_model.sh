@@ -34,9 +34,9 @@ then
 fi
 # stop reading command line arguments
 
-module load Anaconda3/2020.07
-source $EBROOTANACONDA3/etc/profile.d/conda.sh
+module load Anaconda3/2023.03
 
-conda activate WD_model
+source $EBROOTANACONDA3/etc/profile.d/conda.sh
+conda activate TORCH21
 
 python s2_train_conditional_pixel_diffusion.py +experiment=$experiment_name
