@@ -1,6 +1,6 @@
 import argparse
-import pytorch_lightning as pl
-from pytorch_lightning import loggers as pl_loggers
+import lightning as L
+from lightning.pytorch import loggers as pl_loggers
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
@@ -15,8 +15,8 @@ from WD.datasets import Conditional_Dataset_Zarr_Iterable, Conditional_Dataset
 import torch
 from WD.utils import check_devices, create_dir, generate_uid, AreaWeightedMSELoss
 from WD.io import write_config, load_config
-from pytorch_lightning.callbacks import LearningRateMonitor
-from pytorch_lightning.callbacks.early_stopping import (
+from lightning.pytorch.callbacks import LearningRateMonitor
+from lightning.pytorch.callbacks import (
     EarlyStopping,
 )
 
@@ -81,7 +81,7 @@ def main(config: DictConfig) -> None:
         monitor="val_loss", mode="min", patience=config.experiment.training.patience
     )
 
-    trainer = pl.Trainer(
+    trainer = L.Trainer(
         max_steps=config.experiment.training.max_steps,
         limit_val_batches=config.experiment.training.limit_val_batches,
         accelerator=config.experiment.training.accelerator,

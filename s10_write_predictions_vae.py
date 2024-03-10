@@ -3,7 +3,7 @@ from pathlib import Path
 
 import torch
 from torch.utils.data import DataLoader
-import pytorch_lightning as pl
+import lightning as L
 
 import hydra
 from omegaconf import DictConfig, OmegaConf

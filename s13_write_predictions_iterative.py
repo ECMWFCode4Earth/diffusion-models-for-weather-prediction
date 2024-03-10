@@ -13,8 +13,7 @@ from dm_zoo.dff.PixelDiffusion import (
 from WD.datasets import Conditional_Dataset_Zarr_Iterable
 from WD.utils import create_dir
 from WD.io import create_xr_output_variables
-import pytorch_lightning as pl
-
+import lightning as L
 
 
 @hydra.main(version_base=None, config_path="./config", config_name="inference")

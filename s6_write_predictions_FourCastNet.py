@@ -3,7 +3,7 @@ from pathlib import Path
 
 import torch
 from torch.utils.data import DataLoader
-import pytorch_lightning as pl
+import lightning as L
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
@@ -54,7 +54,7 @@ def main(config: DictConfig) -> None:
     )
 
     dl = DataLoader(ds, batch_size=config.batchsize)
-    trainer = pl.Trainer()
+    trainer = L.Trainer()
 
     out = trainer.predict(restored_model, dl)
     out = torch.cat(out, dim=0).unsqueeze(dim=0) # to keep compatible with the version that uses ensemble members

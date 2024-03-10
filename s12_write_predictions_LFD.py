@@ -3,7 +3,7 @@ from pathlib import Path
 
 import torch
 from torch.utils.data import DataLoader
-import pytorch_lightning as pl
+import lightning as L
 
 import hydra
 from omegaconf import DictConfig, OmegaConf, open_dict
@@ -71,7 +71,7 @@ def LFD_inference(config: DictConfig) -> None:
                             sampler = sampler)
     
     dl = DataLoader(ds, batch_size=ml_config.experiment.model.batch_size)
-    trainer = pl.Trainer()
+    trainer = L.Trainer()
 
     out = []
     for i in range(nens):

@@ -6,7 +6,7 @@ from time import time
 # Standard packages
 import numpy as np
 import torch
-import pytorch_lightning as pl
+import lightning as L
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 

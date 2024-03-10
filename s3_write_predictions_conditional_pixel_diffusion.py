@@ -14,7 +14,7 @@ from dm_zoo.dff.PixelDiffusion import (
 from WD.datasets import Conditional_Dataset_Zarr_Iterable
 from WD.utils import create_dir
 from WD.io import create_xr_output_variables
-import pytorch_lightning as pl
+import lightning as L
 
 
 
@@ -55,7 +55,7 @@ def main(config: DictConfig) -> None:
     )
 
     dl = DataLoader(ds, batch_size=config.batchsize)
-    trainer = pl.Trainer()
+    trainer = L.Trainer()
 
     out = []
     for i in range(nens):

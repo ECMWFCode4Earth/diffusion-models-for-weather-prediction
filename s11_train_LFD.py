@@ -1,8 +1,8 @@
 import torch
-import pytorch_lightning as pl
-from pytorch_lightning import loggers as pl_loggers
-from pytorch_lightning.callbacks import LearningRateMonitor
-from pytorch_lightning.callbacks.early_stopping import (
+import lightning as L
+from lightning.pytorch import loggers as pl_loggers
+from lightning.pytorch.callbacks import LearningRateMonitor
+from lightning.pytorch.callbacks import (
     EarlyStopping,
 )
 import os
@@ -88,7 +88,7 @@ def train_LFD(config: DictConfig) -> None:
         monitor="val_reconstruction_loss", mode="min", patience=config.experiment.training.patience
     )
 
-    trainer = pl.Trainer(
+    trainer = L.Trainer(
         max_steps=config.experiment.training.max_steps,
         limit_val_batches=config.experiment.training.limit_val_batches,
         accelerator=config.experiment.training.accelerator,

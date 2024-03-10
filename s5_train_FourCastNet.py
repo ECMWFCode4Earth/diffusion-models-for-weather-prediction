@@ -3,7 +3,7 @@ import torch
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-import pytorch_lightning as pl
+import lightning as L
 from pytorch_lightning import loggers as pl_loggers
 
 from dm_zoo.dff.EMA import EMA
@@ -18,8 +18,8 @@ from dm_zoo.fourcast.train_FourCastNet import FourCastNetDirect
 
 from WD.utils import check_devices, create_dir, AreaWeightedMSELoss
 
-from pytorch_lightning.callbacks import LearningRateMonitor
-from pytorch_lightning.callbacks.early_stopping import (
+from lightning.pytorch.callbacks import LearningRateMonitor
+from lightning.pytorch.callbacks import (
     EarlyStopping,
 )
 
